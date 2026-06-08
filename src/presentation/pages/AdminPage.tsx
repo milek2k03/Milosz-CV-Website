@@ -2347,12 +2347,13 @@ function CvManager() {
               <input
                 accept="application/pdf"
                 className="form-field"
-                onChange={(event) =>
+                onChange={(event) => {
+                  const selectedFile = event.currentTarget.files?.[0]
                   setFiles((current) => ({
                     ...current,
-                    [item.locale]: event.currentTarget.files?.[0] ?? undefined,
+                    [item.locale]: selectedFile ?? undefined,
                   }))
-                }
+                }}
                 type="file"
               />
               <Button
