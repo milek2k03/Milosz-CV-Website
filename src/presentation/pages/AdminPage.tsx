@@ -2266,23 +2266,34 @@ function PortfolioSettingsManager() {
 }
 
 function CvManager() {
-  const { data: cvDocument } = useCvDocument()
+  const { data: plCvDocument } = useCvDocument('pl')
+  const { data: enCvDocument } = useCvDocument('en')
   const uploadCv = useUploadCv()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<Partial<Record<ProjectLocale, File>>>({})
 
-  const handleUpload = async () => {
+  const handleUpload = async (locale: ProjectLocale) => {
+    const file = files[locale]
     if (!file) {
       return
     }
 
     try {
-      await uploadCv.mutateAsync(file)
-      setFile(null)
-      toast.success('CV zaktualizowane.')
+      await uploadCv.mutateAsync({ file, locale })
+      setFiles((current) => ({ ...current, [locale]: undefined }))
+      toast.success(`CV ${locale.toUpperCase()} zaktualizowane.`)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
   }
+
+  const cvItems: Array<{
+    locale: ProjectLocale
+    label: string
+    document: typeof plCvDocument
+  }> = [
+    { locale: 'pl', label: 'CV po polsku', document: plCvDocument },
+    { locale: 'en', label: 'CV po angielsku', document: enCvDocument },
+  ]
 
   return (
     <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
@@ -2290,39 +2301,75 @@ function CvManager() {
         <div>
           <h2 className="text-xl font-semibold">CV</h2>
           <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Plik PDF trafia do bucketu Supabase Storage.
+            Wgraj osobny plik PDF dla wersji PL i EN. Publiczna strona wybiera
+            CV zgodnie z aktualnym jezykiem.
           </p>
         </div>
-        {cvDocument ? (
-          <a
-            className="focus-ring inline-flex items-center gap-2 rounded-md text-sm text-[color:var(--primary)]"
-            href={cvDocument.url}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <FileText className="size-4" />
-            Aktualne CV
-          </a>
-        ) : null}
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 md:flex-row md:items-center">
-        <input
-          accept="application/pdf"
-          className="form-field"
-          onChange={(event) => setFile(event.currentTarget.files?.[0] ?? null)}
-          type="file"
-        />
-        <Button
-          data-admin-save="true"
-          disabled={!file || uploadCv.isPending}
-          icon={<Upload className="size-4" />}
-          onClick={handleUpload}
-          type="button"
-          variant="primary"
-        >
-          {uploadCv.isPending ? 'Wysyłanie...' : 'Wyślij CV'}
-        </Button>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        {cvItems.map((item) => (
+          <div
+            className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-4"
+            key={item.locale}
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-semibold">{item.label}</h3>
+                <p className="mt-1 text-xs uppercase tracking-normal text-[color:var(--muted)]">
+                  locale: {item.locale}
+                </p>
+              </div>
+              {item.document ? (
+                <a
+                  className="focus-ring inline-flex items-center gap-2 rounded-md text-sm text-[color:var(--primary)]"
+                  href={item.document.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <FileText className="size-4" />
+                  Aktualny plik
+                </a>
+              ) : null}
+            </div>
+
+            {item.document ? (
+              <p className="mt-3 text-xs leading-5 text-[color:var(--muted)]">
+                {item.document.fileName}
+              </p>
+            ) : (
+              <p className="mt-3 text-xs leading-5 text-[color:var(--muted)]">
+                Brak wgranego pliku.
+              </p>
+            )}
+
+            <div className="mt-4 grid gap-3">
+              <input
+                accept="application/pdf"
+                className="form-field"
+                onChange={(event) =>
+                  setFiles((current) => ({
+                    ...current,
+                    [item.locale]: event.currentTarget.files?.[0] ?? undefined,
+                  }))
+                }
+                type="file"
+              />
+              <Button
+                data-admin-save={item.locale === 'pl' ? 'true' : undefined}
+                disabled={!files[item.locale] || uploadCv.isPending}
+                icon={<Upload className="size-4" />}
+                onClick={() => void handleUpload(item.locale)}
+                type="button"
+                variant="primary"
+              >
+                {uploadCv.isPending
+                  ? 'Wysylanie...'
+                  : `Wyslij ${item.locale.toUpperCase()}`}
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   )

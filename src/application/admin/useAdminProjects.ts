@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   ProjectMedia,
   ProjectMediaType,
+  ProjectLocale,
   ProjectUpsertInput,
   PortfolioSettings,
   SiteContent,
@@ -81,9 +82,12 @@ export function useUploadCv() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (file: File) => repository.uploadCv(file),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cv-document'] })
+    mutationFn: (input: { file: File; locale: ProjectLocale }) =>
+      repository.uploadCv(input.file, input.locale),
+    onSuccess: async (document) => {
+      await queryClient.invalidateQueries({
+        queryKey: ['cv-document', document.locale],
+      })
     },
   })
 }

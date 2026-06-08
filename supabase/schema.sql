@@ -88,11 +88,31 @@ create table if not exists public.project_translations (
 
 create table if not exists public.cv_documents (
   id uuid primary key default gen_random_uuid(),
+  locale text not null default 'pl' check (locale in ('pl', 'en')),
   file_name text not null,
   url text not null,
   storage_path text not null,
   updated_at timestamptz not null default now()
 );
+
+alter table public.cv_documents
+add column if not exists locale text not null default 'pl';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'cv_documents_locale_check'
+  ) then
+    alter table public.cv_documents
+    add constraint cv_documents_locale_check check (locale in ('pl', 'en'));
+  end if;
+end;
+$$;
+
+create unique index if not exists cv_documents_locale_key
+on public.cv_documents (locale);
 
 create table if not exists public.portfolio_settings (
   id boolean primary key default true,
@@ -140,6 +160,11 @@ for each row execute function public.set_updated_at();
 drop trigger if exists project_translations_set_updated_at on public.project_translations;
 create trigger project_translations_set_updated_at
 before update on public.project_translations
+for each row execute function public.set_updated_at();
+
+drop trigger if exists cv_documents_set_updated_at on public.cv_documents;
+create trigger cv_documents_set_updated_at
+before update on public.cv_documents
 for each row execute function public.set_updated_at();
 
 drop trigger if exists portfolio_settings_set_updated_at on public.portfolio_settings;

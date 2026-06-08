@@ -2,7 +2,10 @@ import { BriefcaseBusiness, Code2, FileText, Mail, Terminal } from 'lucide-react
 import type { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useSiteContent } from '@/application/portfolio/usePortfolio'
+import {
+  useCvDocument,
+  useSiteContent,
+} from '@/application/portfolio/usePortfolio'
 import { siteProfile } from '@/config/profile'
 import { getLocalizedSiteContent } from '@/content/defaultSiteContent'
 import { getSupportedLocale, type SupportedLocale } from '@/i18n/locales'
@@ -23,7 +26,9 @@ export function SiteShell({ children }: PropsWithChildren) {
   const navigate = useNavigate()
   const { data: siteContent } = useSiteContent()
   const currentLocale = getSupportedLocale(i18n.language)
+  const { data: cvDocument } = useCvDocument(currentLocale)
   const content = getLocalizedSiteContent(siteContent, currentLocale)
+  const cvUrl = cvDocument?.url ?? siteProfile.cvUrl ?? '#kontakt'
 
   const changeLanguage = (locale: SupportedLocale) => {
     void i18n.changeLanguage(locale)
@@ -138,7 +143,9 @@ export function SiteShell({ children }: PropsWithChildren) {
             </a>
             <a
               className="focus-ring inline-flex items-center gap-2 rounded-md hover:text-white"
-              href={siteProfile.cvUrl ?? '#kontakt'}
+              href={cvUrl}
+              rel={cvUrl.startsWith('http') ? 'noreferrer' : undefined}
+              target={cvUrl.startsWith('http') ? '_blank' : undefined}
             >
               <FileText className="size-4" />
               CV

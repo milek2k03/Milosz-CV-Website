@@ -4,6 +4,7 @@ import type {
   CompanyLogo,
   CvDocument,
   Project,
+  ProjectLocale,
   ProjectMedia,
   ProjectMediaType,
   ProjectUpsertInput,
@@ -59,12 +60,14 @@ export class FallbackPortfolioRepository implements PortfolioRepository {
     throw new Error('Usuwanie mediow wymaga konfiguracji Supabase.')
   }
 
-  async getCvDocument(): Promise<CvDocument | null> {
+  async getCvDocument(locale: ProjectLocale): Promise<CvDocument | null> {
+    void locale
     return null
   }
 
-  async uploadCv(file: File): Promise<CvDocument> {
+  async uploadCv(file: File, locale: ProjectLocale): Promise<CvDocument> {
     void file
+    void locale
     throw new Error('Upload CV wymaga konfiguracji Supabase.')
   }
 

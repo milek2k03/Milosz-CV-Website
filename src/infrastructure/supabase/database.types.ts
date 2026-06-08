@@ -106,6 +106,7 @@ type CvDocumentRow = {
   file_name: string
   url: string
   storage_path: string
+  locale: 'pl' | 'en'
   updated_at: string
 }
 
@@ -114,6 +115,7 @@ type CvDocumentInsert = {
   file_name: string
   url: string
   storage_path: string
+  locale?: 'pl' | 'en'
 }
 
 type PortfolioSettingsRow = {

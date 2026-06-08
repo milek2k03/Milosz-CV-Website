@@ -12,11 +12,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { siteProfile } from '@/config/profile'
 import {
+  useCvDocument,
   usePublishedProjects,
   useSiteContent,
 } from '@/application/portfolio/usePortfolio'
 import { getLocalizedSiteContent } from '@/content/defaultSiteContent'
 import { localizeProject } from '@/domain/portfolio/localizeProject'
+import { getSupportedLocale } from '@/i18n/locales'
 import { Badge } from '@/presentation/components/Badge'
 import { Button } from '@/presentation/components/Button'
 import { CompanyLogoMarquee } from '@/presentation/components/company/CompanyLogoMarquee'
@@ -34,7 +36,10 @@ export function HomePage() {
   const [showAllProjects, setShowAllProjects] = useState(false)
   const { data: projects = [], isLoading } = usePublishedProjects()
   const { data: siteContent } = useSiteContent()
-  const content = getLocalizedSiteContent(siteContent, i18n.language)
+  const currentLocale = getSupportedLocale(i18n.language)
+  const { data: cvDocument } = useCvDocument(currentLocale)
+  const content = getLocalizedSiteContent(siteContent, currentLocale)
+  const cvUrl = cvDocument?.url ?? siteProfile.cvUrl
   const workflowItems = content.workflowItems
   const stackCards = content.stack.cards
   const localizedProjects = projects.map((project) =>
@@ -50,6 +55,15 @@ export function HomePage() {
     document
       .getElementById(sectionId)
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const openCv = () => {
+    if (cvUrl) {
+      window.open(cvUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    scrollToSection('kontakt')
   }
 
   return (
@@ -90,7 +104,7 @@ export function HomePage() {
               </Button>
               <Button
                 icon={<Download className="size-4" />}
-                onClick={() => scrollToSection('kontakt')}
+                onClick={openCv}
                 type="button"
               >
                 {t('common.cv')}

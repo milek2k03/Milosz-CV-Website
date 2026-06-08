@@ -262,10 +262,11 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }
   }
 
-  async getCvDocument(): Promise<CvDocument | null> {
+  async getCvDocument(locale: ProjectLocale): Promise<CvDocument | null> {
     const { data, error } = await this.client
       .from('cv_documents')
       .select('*')
+      .eq('locale', locale)
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -280,13 +281,14 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
           fileName: data.file_name,
           url: data.url,
           storagePath: data.storage_path,
+          locale: data.locale,
           updatedAt: data.updated_at,
         }
       : null
   }
 
-  async uploadCv(file: File): Promise<CvDocument> {
-    const storagePath = `cv/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`
+  async uploadCv(file: File, locale: ProjectLocale): Promise<CvDocument> {
+    const storagePath = `cv/${locale}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`
     const { error: uploadError } = await this.client.storage
       .from(CV_BUCKET)
       .upload(storagePath, file, {
@@ -304,11 +306,17 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
 
     const { data, error } = await this.client
       .from('cv_documents')
-      .insert({
-        file_name: sanitizeFileName(file.name),
-        url: publicUrlData.publicUrl,
-        storage_path: storagePath,
-      })
+      .upsert(
+        {
+          locale,
+          file_name: sanitizeFileName(file.name),
+          url: publicUrlData.publicUrl,
+          storage_path: storagePath,
+        },
+        {
+          onConflict: 'locale',
+        },
+      )
       .select()
       .single()
 
@@ -321,6 +329,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
       fileName: data.file_name,
       url: data.url,
       storagePath: data.storage_path,
+      locale: data.locale,
       updatedAt: data.updated_at,
     }
   }

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { ProjectLocale } from '@/domain/portfolio/entities'
 import { getPortfolioRepository } from '@/infrastructure/portfolio/repositoryFactory'
 
 const repository = getPortfolioRepository()
@@ -24,10 +25,10 @@ export function useProjectBySlug(slug: string | undefined) {
   })
 }
 
-export function useCvDocument() {
+export function useCvDocument(locale: ProjectLocale) {
   return useQuery({
-    queryKey: ['cv-document'],
-    queryFn: () => repository.getCvDocument(),
+    queryKey: ['cv-document', locale],
+    queryFn: () => repository.getCvDocument(locale),
   })
 }
 

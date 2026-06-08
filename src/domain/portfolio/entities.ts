@@ -88,6 +88,7 @@ export interface CvDocument {
   fileName: string
   url: string
   storagePath: string
+  locale: ProjectLocale
   updatedAt: string
 }
 
