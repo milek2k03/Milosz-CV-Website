@@ -42,6 +42,25 @@ const escapeHtml = (value: string) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;')
 
+const sendEmail = async (
+  resendApiKey: string,
+  body: Record<string, unknown>,
+) => {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(details || 'Email provider failed.')
+  }
+}
+
 const normalizePayload = (payload: ContactPayload) => {
   if (payload.website && payload.website.trim().length > 0) {
     return null
@@ -134,49 +153,81 @@ serve(async (request) => {
     const escapedSubject = escapeHtml(message.subject)
     const escapedCompany = message.company ? escapeHtml(message.company) : ''
 
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [toEmail],
-        reply_to: message.email,
-        subject: `[Portfolio] ${message.subject}`,
-        text: [
-          `Name: ${message.name}`,
-          `Email: ${message.email}`,
-          message.company ? `Company / project: ${message.company}` : null,
-          `Locale: ${message.locale}`,
-          `Source: ${message.source_url}`,
-          '',
-          message.message,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-        html: `
-          <h2>${escapedSubject}</h2>
-          <p><strong>Name:</strong> ${escapedName}</p>
-          <p><strong>Email:</strong> ${escapeHtml(message.email)}</p>
-          ${
-            escapedCompany
-              ? `<p><strong>Company / project:</strong> ${escapedCompany}</p>`
-              : ''
-          }
-          <p><strong>Locale:</strong> ${message.locale}</p>
-          <p><strong>Source:</strong> ${escapeHtml(message.source_url)}</p>
-          <hr />
-          <p>${escapedMessage}</p>
-        `,
-      }),
+    await sendEmail(resendApiKey, {
+      from: fromEmail,
+      to: [toEmail],
+      reply_to: message.email,
+      subject: `[Portfolio] ${message.subject}`,
+      text: [
+        `Name: ${message.name}`,
+        `Email: ${message.email}`,
+        message.company ? `Company / project: ${message.company}` : null,
+        `Locale: ${message.locale}`,
+        `Source: ${message.source_url}`,
+        '',
+        message.message,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+      html: `
+        <h2>${escapedSubject}</h2>
+        <p><strong>Name:</strong> ${escapedName}</p>
+        <p><strong>Email:</strong> ${escapeHtml(message.email)}</p>
+        ${
+          escapedCompany
+            ? `<p><strong>Company / project:</strong> ${escapedCompany}</p>`
+            : ''
+        }
+        <p><strong>Locale:</strong> ${message.locale}</p>
+        <p><strong>Source:</strong> ${escapeHtml(message.source_url)}</p>
+        <hr />
+        <p>${escapedMessage}</p>
+      `,
     })
 
-    if (!emailResponse.ok) {
-      const details = await emailResponse.text()
-      throw new Error(details || 'Email provider failed.')
-    }
+    const confirmation =
+      message.locale === 'en'
+        ? {
+            subject: 'Your message has been sent',
+            intro: `Hi ${message.name},`,
+            body:
+              'I confirm that your message from the portfolio contact form has been sent successfully. I will reply as soon as possible.',
+            summaryLabel: 'Message subject',
+            footer:
+              'This is an automatic confirmation. You do not need to resend the form.',
+          }
+        : {
+            subject: 'Twoja wiadomo\u015b\u0107 zosta\u0142a wys\u0142ana',
+            intro: `Cze\u015b\u0107 ${message.name},`,
+            body:
+              'Potwierdzam, \u017ce Twoja wiadomo\u015b\u0107 z formularza kontaktowego portfolio zosta\u0142a wys\u0142ana poprawnie. Odpowiem mo\u017cliwie szybko.',
+            summaryLabel: 'Temat wiadomo\u015bci',
+            footer:
+              'To automatyczne potwierdzenie. Nie musisz ponownie wysy\u0142a\u0107 formularza.',
+          }
+
+    await sendEmail(resendApiKey, {
+      from: fromEmail,
+      to: [message.email],
+      reply_to: toEmail,
+      subject: confirmation.subject,
+      text: [
+        confirmation.intro,
+        '',
+        confirmation.body,
+        '',
+        `${confirmation.summaryLabel}: ${message.subject}`,
+        '',
+        confirmation.footer,
+      ].join('\n'),
+      html: `
+        <p>${escapeHtml(confirmation.intro)}</p>
+        <p>${escapeHtml(confirmation.body)}</p>
+        <p><strong>${escapeHtml(confirmation.summaryLabel)}:</strong> ${escapedSubject}</p>
+        <hr />
+        <p style="color:#64748b">${escapeHtml(confirmation.footer)}</p>
+      `,
+    })
 
     return Response.json({ ok: true }, { headers: corsHeaders })
   } catch (error) {
