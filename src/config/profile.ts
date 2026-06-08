@@ -5,7 +5,7 @@ export const siteProfile = {
   roles: ['Unity Developer', 'VR Developer', 'Software Developer'],
   location: 'Polska',
   description:
-    'Tworzę aplikacje i gry w Unity, rozwiązania VR oraz projekty webowe. Skupiam się na jakości kodu, wydajności i architekturze.',
+    'Projektuję i wdrażam aplikacje Unity, rozwiązania VR oraz projekty webowe z naciskiem na stabilność, czytelną architekturę i realną użyteczność produktu.',
   email: appEnv.contactEmail ?? 'milosz.czech1803@gmail.com',
   siteUrl: appEnv.siteUrl,
   cvUrl: appEnv.cvUrl,

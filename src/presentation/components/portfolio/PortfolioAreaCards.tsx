@@ -6,10 +6,12 @@ import {
   useSiteContent,
 } from '@/application/portfolio/usePortfolio'
 import { getLocalizedSiteContent } from '@/content/defaultSiteContent'
-import { ButtonLink } from '@/presentation/components/Button'
 import { SectionHeader } from '@/presentation/components/SectionHeader'
 
 const isExternalHref = (href: string) => /^https?:\/\//.test(href)
+const areaCtaClassName =
+  'focus-ring group mt-6 inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-md border border-[rgba(56,189,248,0.38)] bg-[rgba(56,189,248,0.13)] px-4 text-sm font-semibold text-sky-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-[rgba(56,189,248,0.62)] hover:bg-[rgba(56,189,248,0.2)]'
+const areaCtaIconClassName = 'size-4 transition-transform group-hover:translate-x-0.5'
 
 export function PortfolioAreaCards() {
   const { i18n } = useTranslation()
@@ -40,11 +42,11 @@ export function PortfolioAreaCards() {
               {content.areas.unityDescription}
             </p>
             <Link
-              className="focus-ring mt-6 inline-flex items-center gap-2 rounded-md text-sm font-medium text-[color:var(--primary)]"
+              className={areaCtaClassName}
               to="/unity"
             >
               {content.areas.unityButton}
-              <ArrowRight className="size-4" />
+              <ArrowRight className={areaCtaIconClassName} />
             </Link>
           </article>
 
@@ -58,15 +60,15 @@ export function PortfolioAreaCards() {
             <p className="mt-3 leading-7 text-[color:var(--muted)]">
               {content.areas.webDescription}
             </p>
-            <ButtonLink
-              className="mt-6"
+            <a
+              className={areaCtaClassName}
               href={webHref}
               rel={webExternal ? 'noreferrer' : undefined}
               target={webExternal ? '_blank' : undefined}
-              variant="primary"
             >
               {content.areas.webButton}
-            </ButtonLink>
+              <ArrowRight className={areaCtaIconClassName} />
+            </a>
           </article>
         </div>
       </div>
