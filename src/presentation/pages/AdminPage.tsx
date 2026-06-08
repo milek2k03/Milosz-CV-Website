@@ -1193,16 +1193,18 @@ function SiteContentEditor({
       </div>
 
       <div className="grid gap-5">
-        <LocalizedSiteContentFields
-          content={state.locales.pl}
-          locale="pl"
-          onChange={(updater) => updateLocale('pl', updater)}
-        />
-        <LocalizedSiteContentFields
-          content={state.locales.en}
-          locale="en"
-          onChange={(updater) => updateLocale('en', updater)}
-        />
+        <div className="grid items-start gap-5 lg:grid-cols-2">
+          <LocalizedSiteContentFields
+            content={state.locales.pl}
+            locale="pl"
+            onChange={(updater) => updateLocale('pl', updater)}
+          />
+          <LocalizedSiteContentFields
+            content={state.locales.en}
+            locale="en"
+            onChange={(updater) => updateLocale('en', updater)}
+          />
+        </div>
 
         <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1423,19 +1425,19 @@ function LocalizedSiteContentFields({
     }))
   }
 
-  const localeLabel = locale === 'pl' ? 'Polski' : 'English'
+  const localeLabel = locale === 'pl' ? 'Polski' : 'Angielski'
 
   return (
     <details
       className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4"
-      open={locale === 'pl'}
+      open
     >
       <summary className="cursor-pointer font-semibold">
         Treści: {localeLabel}
       </summary>
 
       <div className="mt-5 grid gap-5">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           <Field label="SEO description">
             <textarea
               className="form-field min-h-28"
@@ -1456,7 +1458,7 @@ function LocalizedSiteContentFields({
           </Field>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           <Field label="Hero opis">
             <textarea
               className="form-field min-h-32"
@@ -1486,7 +1488,7 @@ function LocalizedSiteContentFields({
         </Field>
 
         <ContentEditorGroup title="Sekcja projektów">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Eyebrow">
               <input
                 className="form-field"
@@ -1515,7 +1517,7 @@ function LocalizedSiteContentFields({
               value={content.projects.description}
             />
           </Field>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Nagłówek Unity">
               <input
                 className="form-field"
@@ -1556,7 +1558,7 @@ function LocalizedSiteContentFields({
         </ContentEditorGroup>
 
         <ContentEditorGroup title="Obszary portfolio">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Eyebrow">
               <input
                 className="form-field"
@@ -1585,7 +1587,7 @@ function LocalizedSiteContentFields({
               value={content.areas.description}
             />
           </Field>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Unity title">
               <input
                 className="form-field"
@@ -1614,7 +1616,7 @@ function LocalizedSiteContentFields({
               value={content.areas.unityDescription}
             />
           </Field>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Web title">
               <input
                 className="form-field"
@@ -1646,7 +1648,7 @@ function LocalizedSiteContentFields({
         </ContentEditorGroup>
 
         <ContentEditorGroup title="Podstrony Unity i Web">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Unity title">
               <input
                 className="form-field"
@@ -1666,7 +1668,7 @@ function LocalizedSiteContentFields({
               />
             </Field>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Unity description">
               <textarea
                 className="form-field min-h-28"
@@ -1698,7 +1700,7 @@ function LocalizedSiteContentFields({
         </ContentEditorGroup>
 
         <ContentEditorGroup title="Firmy">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Eyebrow">
               <input
                 className="form-field"
@@ -1734,7 +1736,7 @@ function LocalizedSiteContentFields({
         </ContentEditorGroup>
 
         <ContentEditorGroup title="Stack / sposób pracy">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Eyebrow">
               <input
                 className="form-field"
@@ -1773,7 +1775,7 @@ function LocalizedSiteContentFields({
         </ContentEditorGroup>
 
         <ContentEditorGroup title="Kontakt">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Eyebrow">
               <input
                 className="form-field"
