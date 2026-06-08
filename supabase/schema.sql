@@ -111,9 +111,6 @@ begin
 end;
 $$;
 
-create unique index if not exists cv_documents_locale_key
-on public.cv_documents (locale);
-
 create table if not exists public.portfolio_settings (
   id boolean primary key default true,
   web_portfolio_url text not null default '/websites',

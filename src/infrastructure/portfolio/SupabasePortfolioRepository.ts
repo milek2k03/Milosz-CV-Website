@@ -306,17 +306,12 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
 
     const { data, error } = await this.client
       .from('cv_documents')
-      .upsert(
-        {
-          locale,
-          file_name: sanitizeFileName(file.name),
-          url: publicUrlData.publicUrl,
-          storage_path: storagePath,
-        },
-        {
-          onConflict: 'locale',
-        },
-      )
+      .insert({
+        locale,
+        file_name: sanitizeFileName(file.name),
+        url: publicUrlData.publicUrl,
+        storage_path: storagePath,
+      })
       .select()
       .single()
 
