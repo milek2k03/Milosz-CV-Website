@@ -94,6 +94,8 @@ export interface CvDocument {
 export interface CompanyLogo {
   name: string
   shortName: string
+  imageUrl?: string
+  storagePath?: string
 }
 
 export interface SiteSectionContent {

@@ -88,6 +88,12 @@ export function useUploadCv() {
   })
 }
 
+export function useUploadCompanyLogo() {
+  return useMutation({
+    mutationFn: (file: File) => repository.uploadCompanyLogo(file),
+  })
+}
+
 export function useUpdatePortfolioSettings() {
   const queryClient = useQueryClient()
 

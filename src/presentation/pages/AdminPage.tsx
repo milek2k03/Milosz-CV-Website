@@ -30,6 +30,7 @@ import {
   useUpdatePortfolioSettings,
   useUpdateSiteContent,
   useUploadCv,
+  useUploadCompanyLogo,
   useUploadProjectMedia,
 } from '@/application/admin/useAdminProjects'
 import { defaultSiteContent } from '@/content/defaultSiteContent'
@@ -218,6 +219,8 @@ const siteContentSchema = z.object({
       z.object({
         name: z.string().min(1),
         shortName: z.string().min(1),
+        imageUrl: z.string().optional(),
+        storagePath: z.string().optional(),
       }),
     )
     .min(1),
@@ -322,20 +325,10 @@ const parseStackCards = (value: string): SiteStackCardContent[] =>
     return { title, text }
   })
 
-const companyLogosToText = (logos: CompanyLogo[]) =>
-  logos.map((logo) => `${logo.name} | ${logo.shortName}`).join('\n')
-
-const parseCompanyLogos = (value: string): CompanyLogo[] =>
-  splitLineList(value).map((line) => {
-    const [name = '', shortName = ''] = line
-      .split('|')
-      .map((part) => part.trim())
-
-    return {
-      name,
-      shortName: shortName || name,
-    }
-  })
+const createCompanyLogo = (): CompanyLogo => ({
+  name: 'Nowa firma',
+  shortName: 'Firma',
+})
 
 const cloneSiteContent = (content: SiteContent): SiteContent => ({
   locales: {
@@ -1082,6 +1075,7 @@ function SiteContentEditor({
   isLoading: boolean
 }) {
   const updateSiteContent = useUpdateSiteContent()
+  const uploadCompanyLogo = useUploadCompanyLogo()
   const [state, setState] = useState<SiteContent>(() =>
     cloneSiteContent(initialContent),
   )
@@ -1097,6 +1091,59 @@ function SiteContentEditor({
         [locale]: updater(current.locales[locale]),
       },
     }))
+  }
+
+  const updateCompanyLogo = (
+    index: number,
+    updater: (logo: CompanyLogo) => CompanyLogo,
+  ) => {
+    setState((current) => ({
+      ...current,
+      companyLogos: current.companyLogos.map((logo, logoIndex) =>
+        logoIndex === index ? updater(logo) : logo,
+      ),
+    }))
+  }
+
+  const handleAddCompanyLogo = () => {
+    setState((current) => ({
+      ...current,
+      companyLogos: [...current.companyLogos, createCompanyLogo()],
+    }))
+  }
+
+  const handleRemoveCompanyLogo = (index: number) => {
+    setState((current) => ({
+      ...current,
+      companyLogos: current.companyLogos.filter((_, logoIndex) => logoIndex !== index),
+    }))
+  }
+
+  const handleCompanyLogoUpload = async (
+    index: number,
+    file: File | undefined,
+  ) => {
+    if (!file) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Wybierz plik graficzny.')
+      return
+    }
+
+    try {
+      const uploaded = await uploadCompanyLogo.mutateAsync(file)
+      updateCompanyLogo(index, (logo) => ({
+        ...logo,
+        ...uploaded,
+        name: logo.name.trim() || file.name,
+        shortName: logo.shortName.trim() || logo.name || file.name,
+      }))
+      toast.success('Zdjecie firmy wgrane. Kliknij Zapisz tresci.')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   const handleSave = async () => {
@@ -1158,22 +1205,118 @@ function SiteContentEditor({
         />
 
         <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
-          <h3 className="font-semibold">Logotypy firm</h3>
-          <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Format: pełna nazwa | skrót widoczny na pasku.
-          </p>
-          <Field label="Firmy, każda w osobnej linii">
-            <textarea
-              className="form-field min-h-36"
-              onChange={(event) =>
-                setState((current) => ({
-                  ...current,
-                  companyLogos: parseCompanyLogos(event.target.value),
-                }))
-              }
-              value={companyLogosToText(state.companyLogos)}
-            />
-          </Field>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="font-semibold">Zdjecia firm do paska</h3>
+              <p className="mt-1 text-sm leading-6 text-[color:var(--muted)]">
+                Wgrywaj poziome grafiki 16:9, najlepiej 1600x900 lub 1200x675.
+                Publiczny pasek wymusza ten sam rozmiar dla kazdej pozycji.
+              </p>
+            </div>
+            <Button
+              icon={<Plus className="size-4" />}
+              onClick={handleAddCompanyLogo}
+              type="button"
+            >
+              Dodaj firme
+            </Button>
+          </div>
+
+          <div className="mt-5 grid gap-4">
+            {state.companyLogos.map((logo, index) => (
+              <div
+                className="grid gap-4 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-4 lg:grid-cols-[220px_minmax(0,1fr)]"
+                key={`${logo.storagePath ?? logo.name}-${index}`}
+              >
+                <div>
+                  <div className="aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--background)]">
+                    {logo.imageUrl ? (
+                      <img
+                        alt={logo.name}
+                        className="h-full w-full object-contain p-3"
+                        loading="lazy"
+                        src={logo.imageUrl}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center px-4 text-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)]">
+                        Brak zdjecia 16:9
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">
+                    Podglad ma taki sam format jak kafelek w pasku.
+                  </p>
+                </div>
+
+                <div className="grid gap-3">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <Field label="Nazwa firmy">
+                      <input
+                        className="form-field"
+                        onChange={(event) =>
+                          updateCompanyLogo(index, (current) => ({
+                            ...current,
+                            name: event.target.value,
+                          }))
+                        }
+                        value={logo.name}
+                      />
+                    </Field>
+                    <Field label="Tekst awaryjny">
+                      <input
+                        className="form-field"
+                        onChange={(event) =>
+                          updateCompanyLogo(index, (current) => ({
+                            ...current,
+                            shortName: event.target.value,
+                          }))
+                        }
+                        value={logo.shortName}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="focus-ring inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-[color:var(--border-strong)] bg-[color:var(--background)] px-4 text-sm font-medium transition-colors hover:border-cyan-300/45">
+                      <ImagePlus className="size-4" />
+                      Wgraj zdjecie
+                      <input
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={(event) => {
+                          void handleCompanyLogoUpload(
+                            index,
+                            event.currentTarget.files?.[0],
+                          )
+                          event.currentTarget.value = ''
+                        }}
+                        type="file"
+                      />
+                    </label>
+                    <Button
+                      disabled={state.companyLogos.length <= 1}
+                      icon={<Trash2 className="size-4" />}
+                      onClick={() => handleRemoveCompanyLogo(index)}
+                      type="button"
+                      variant="danger"
+                    >
+                      Usun
+                    </Button>
+                    {logo.imageUrl ? (
+                      <a
+                        className="text-sm font-medium text-[color:var(--primary)] hover:text-sky-200"
+                        href={logo.imageUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        Otworz plik
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

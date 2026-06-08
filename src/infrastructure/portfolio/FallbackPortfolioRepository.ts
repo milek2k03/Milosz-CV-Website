@@ -1,6 +1,7 @@
 import { defaultSiteContent } from '@/content/defaultSiteContent'
 import { seedProjects } from '@/content/seedProjects'
 import type {
+  CompanyLogo,
   CvDocument,
   Project,
   ProjectMedia,
@@ -65,6 +66,13 @@ export class FallbackPortfolioRepository implements PortfolioRepository {
   async uploadCv(file: File): Promise<CvDocument> {
     void file
     throw new Error('Upload CV wymaga konfiguracji Supabase.')
+  }
+
+  async uploadCompanyLogo(
+    file: File,
+  ): Promise<Pick<CompanyLogo, 'imageUrl' | 'storagePath'>> {
+    void file
+    throw new Error('Upload logotypow wymaga konfiguracji Supabase.')
   }
 
   async getPortfolioSettings(): Promise<PortfolioSettings> {

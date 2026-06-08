@@ -1,4 +1,5 @@
 import type {
+  CompanyLogo,
   CvDocument,
   Project,
   ProjectMedia,
@@ -23,6 +24,9 @@ export interface PortfolioRepository {
   removeProjectMedia(media: ProjectMedia): Promise<void>
   getCvDocument(): Promise<CvDocument | null>
   uploadCv(file: File): Promise<CvDocument>
+  uploadCompanyLogo(
+    file: File,
+  ): Promise<Pick<CompanyLogo, 'imageUrl' | 'storagePath'>>
   getPortfolioSettings(): Promise<PortfolioSettings>
   updatePortfolioSettings(settings: PortfolioSettings): Promise<PortfolioSettings>
   getSiteContent(): Promise<SiteContent>

@@ -61,6 +61,67 @@ const sendEmail = async (
   }
 }
 
+const buildEmailShell = ({
+  preheader,
+  eyebrow,
+  title,
+  body,
+  footer,
+}: {
+  preheader: string
+  eyebrow: string
+  title: string
+  body: string
+  footer: string
+}) => `
+  <!doctype html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>${title}</title>
+    </head>
+    <body style="margin:0;background:#0B1120;padding:28px 16px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#F8FAFC;">
+      <span style="display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;">${preheader}</span>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;border-collapse:collapse;">
+              <tr>
+                <td style="padding:22px 0 18px;">
+                  <div style="font-size:12px;line-height:18px;letter-spacing:.08em;text-transform:uppercase;color:#38BDF8;font-weight:700;">${eyebrow}</div>
+                  <h1 style="margin:8px 0 0;font-size:26px;line-height:34px;color:#F8FAFC;font-weight:750;">${title}</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#111827;border:1px solid #253047;border-radius:12px;padding:24px;box-shadow:0 18px 44px rgba(0,0,0,.24);">
+                  ${body}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:18px 4px 0;color:#94A3B8;font-size:13px;line-height:20px;">
+                  ${footer}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+`
+
+const buildInfoRow = (label: string, value: string) => `
+  <tr>
+    <td style="padding:10px 0;color:#94A3B8;font-size:13px;line-height:19px;width:34%;vertical-align:top;">${label}</td>
+    <td style="padding:10px 0;color:#F8FAFC;font-size:14px;line-height:20px;font-weight:650;vertical-align:top;">${value}</td>
+  </tr>
+`
+
+const buildButton = (href: string, label: string) => `
+  <a href="${href}" style="display:inline-block;background:#0EA5E9;color:#FFFFFF;text-decoration:none;border-radius:8px;padding:11px 16px;font-size:14px;line-height:18px;font-weight:750;">${label}</a>
+`
+
 const normalizePayload = (payload: ContactPayload) => {
   if (payload.website && payload.website.trim().length > 0) {
     return null
@@ -150,8 +211,16 @@ serve(async (request) => {
 
     const escapedMessage = escapeHtml(message.message).replaceAll('\n', '<br />')
     const escapedName = escapeHtml(message.name)
+    const escapedEmail = escapeHtml(message.email)
     const escapedSubject = escapeHtml(message.subject)
     const escapedCompany = message.company ? escapeHtml(message.company) : ''
+    const escapedSource = escapeHtml(message.source_url)
+    const localeLabel = message.locale === 'en' ? 'English' : 'Polski'
+    const replyHref = escapeHtml(
+      `mailto:${message.email}?subject=${encodeURIComponent(
+        `Re: ${message.subject}`,
+      )}`,
+    )
 
     await sendEmail(resendApiKey, {
       from: fromEmail,
@@ -169,64 +238,129 @@ serve(async (request) => {
       ]
         .filter(Boolean)
         .join('\n'),
-      html: `
-        <h2>${escapedSubject}</h2>
-        <p><strong>Name:</strong> ${escapedName}</p>
-        <p><strong>Email:</strong> ${escapeHtml(message.email)}</p>
-        ${
-          escapedCompany
-            ? `<p><strong>Company / project:</strong> ${escapedCompany}</p>`
-            : ''
-        }
-        <p><strong>Locale:</strong> ${message.locale}</p>
-        <p><strong>Source:</strong> ${escapeHtml(message.source_url)}</p>
-        <hr />
-        <p>${escapedMessage}</p>
-      `,
+      html: buildEmailShell({
+        preheader: `Nowe zapytanie z portfolio: ${escapedSubject}`,
+        eyebrow: 'Portfolio contact',
+        title: 'Nowe zapytanie z formularza',
+        body: `
+          <p style="margin:0 0 18px;color:#CBD5E1;font-size:15px;line-height:24px;">
+            Kto\u015b wys\u0142a\u0142 wiadomo\u015b\u0107 przez formularz kontaktowy na portfolio. Poni\u017cej masz pe\u0142ny kontekst zg\u0142oszenia i tre\u015b\u0107 wiadomo\u015bci.
+          </p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border-top:1px solid #253047;border-bottom:1px solid #253047;margin:18px 0;">
+            ${buildInfoRow('Imie i nazwisko', escapedName)}
+            ${buildInfoRow('Email', `<a href="mailto:${escapedEmail}" style="color:#38BDF8;text-decoration:none;">${escapedEmail}</a>`)}
+            ${
+              escapedCompany
+                ? buildInfoRow('Firma / projekt', escapedCompany)
+                : ''
+            }
+            ${buildInfoRow('Temat', escapedSubject)}
+            ${buildInfoRow('Jezyk formularza', localeLabel)}
+            ${buildInfoRow('Zrodlo', `<a href="${escapedSource}" style="color:#38BDF8;text-decoration:none;">${escapedSource}</a>`)}
+          </table>
+          <div style="margin:0 0 22px;">
+            <div style="margin:0 0 8px;color:#94A3B8;font-size:12px;line-height:18px;text-transform:uppercase;letter-spacing:.08em;font-weight:750;">Wiadomosc</div>
+            <div style="background:#0B1120;border:1px solid #253047;border-radius:10px;padding:16px;color:#E2E8F0;font-size:15px;line-height:25px;">${escapedMessage}</div>
+          </div>
+          ${buildButton(replyHref, 'Odpowiedz na zapytanie')}
+        `,
+        footer:
+          'Wiadomo\u015b\u0107 zosta\u0142a zapisana w Supabase w tabeli contact_messages. Nadawca formularza dosta\u0142 osobne potwierdzenie automatyczne.',
+      }),
     })
 
     const confirmation =
       message.locale === 'en'
         ? {
             subject: 'Your message has been sent',
+            eyebrow: 'Message received',
+            title: 'Your message is on its way',
             intro: `Hi ${message.name},`,
             body:
-              'I confirm that your message from the portfolio contact form has been sent successfully. I will reply as soon as possible.',
+              'Thanks for reaching out through my portfolio. Your message was delivered successfully and is now queued for review.',
+            nextStepTitle: 'What happens next',
+            nextStep:
+              'I will read the details and reply directly if the topic fits my current Unity, VR or software development work.',
             summaryLabel: 'Message subject',
+            noReplyTitle: 'Please do not reply to this email',
+            noReply:
+              'This confirmation was sent automatically. If you want to add more context, please send a new message through the contact form.',
             footer:
-              'This is an automatic confirmation. You do not need to resend the form.',
+              'Automatic confirmation from miloszczechportfolio.pl',
           }
         : {
             subject: 'Twoja wiadomo\u015b\u0107 zosta\u0142a wys\u0142ana',
+            eyebrow: 'Wiadomosc odebrana',
+            title: 'Twoje zapytanie jest juz w drodze',
             intro: `Cze\u015b\u0107 ${message.name},`,
             body:
-              'Potwierdzam, \u017ce Twoja wiadomo\u015b\u0107 z formularza kontaktowego portfolio zosta\u0142a wys\u0142ana poprawnie. Odpowiem mo\u017cliwie szybko.',
+              'Dzi\u0119ki za kontakt przez moje portfolio. Wiadomo\u015b\u0107 zosta\u0142a wys\u0142ana poprawnie i trafi\u0142a do kolejki do sprawdzenia.',
+            nextStepTitle: 'Co dalej',
+            nextStep:
+              'Przeczytam szczeg\u00f3\u0142y i odpowiem bezpo\u015brednio, je\u015bli temat pasuje do mojego aktualnego zakresu prac Unity, VR albo software development.',
             summaryLabel: 'Temat wiadomo\u015bci',
+            noReplyTitle: 'Nie odpowiadaj na tego maila',
+            noReply:
+              'To automatyczne potwierdzenie. Je\u015bli chcesz dopisa\u0107 wi\u0119cej informacji, wy\u015blij nowe zg\u0142oszenie przez formularz kontaktowy.',
             footer:
-              'To automatyczne potwierdzenie. Nie musisz ponownie wysy\u0142a\u0107 formularza.',
+              'Automatyczne potwierdzenie z miloszczechportfolio.pl',
           }
 
     await sendEmail(resendApiKey, {
       from: fromEmail,
       to: [message.email],
-      reply_to: toEmail,
       subject: confirmation.subject,
       text: [
         confirmation.intro,
         '',
         confirmation.body,
         '',
+        confirmation.nextStepTitle,
+        confirmation.nextStep,
+        '',
         `${confirmation.summaryLabel}: ${message.subject}`,
+        '',
+        confirmation.noReplyTitle,
+        confirmation.noReply,
         '',
         confirmation.footer,
       ].join('\n'),
-      html: `
-        <p>${escapeHtml(confirmation.intro)}</p>
-        <p>${escapeHtml(confirmation.body)}</p>
-        <p><strong>${escapeHtml(confirmation.summaryLabel)}:</strong> ${escapedSubject}</p>
-        <hr />
-        <p style="color:#64748b">${escapeHtml(confirmation.footer)}</p>
-      `,
+      html: buildEmailShell({
+        preheader: escapeHtml(confirmation.body),
+        eyebrow: escapeHtml(confirmation.eyebrow),
+        title: escapeHtml(confirmation.title),
+        body: `
+          <p style="margin:0 0 12px;color:#F8FAFC;font-size:16px;line-height:25px;font-weight:700;">${escapeHtml(
+            confirmation.intro,
+          )}</p>
+          <p style="margin:0 0 20px;color:#CBD5E1;font-size:15px;line-height:24px;">${escapeHtml(
+            confirmation.body,
+          )}</p>
+          <div style="background:#0B1120;border:1px solid #253047;border-radius:10px;padding:16px;margin:0 0 14px;">
+            <div style="color:#38BDF8;font-size:13px;line-height:18px;font-weight:750;margin:0 0 6px;">${escapeHtml(
+              confirmation.nextStepTitle,
+            )}</div>
+            <div style="color:#E2E8F0;font-size:14px;line-height:23px;">${escapeHtml(
+              confirmation.nextStep,
+            )}</div>
+          </div>
+          <div style="background:#172033;border:1px solid #253047;border-radius:10px;padding:14px 16px;margin:0 0 14px;">
+            <div style="color:#94A3B8;font-size:12px;line-height:18px;text-transform:uppercase;letter-spacing:.08em;font-weight:750;">${escapeHtml(
+              confirmation.summaryLabel,
+            )}</div>
+            <div style="color:#F8FAFC;font-size:15px;line-height:23px;font-weight:750;margin-top:4px;">${escapedSubject}</div>
+          </div>
+          <div style="background:#1A2233;border:1px solid #334155;border-radius:10px;padding:14px 16px;">
+            <div style="color:#F8FAFC;font-size:14px;line-height:22px;font-weight:750;margin:0 0 4px;">${escapeHtml(
+              confirmation.noReplyTitle,
+            )}</div>
+            <div style="color:#CBD5E1;font-size:14px;line-height:22px;">${escapeHtml(
+              confirmation.noReply,
+            )}</div>
+          </div>
+        `,
+        footer: escapeHtml(confirmation.footer),
+      }),
     })
 
     return Response.json({ ok: true }, { headers: corsHeaders })

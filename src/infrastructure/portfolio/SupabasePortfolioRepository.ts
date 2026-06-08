@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
+  CompanyLogo,
   CvDocument,
   Project,
   ProjectLocalizedContent,
@@ -321,6 +322,35 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
       url: data.url,
       storagePath: data.storage_path,
       updatedAt: data.updated_at,
+    }
+  }
+
+  async uploadCompanyLogo(
+    file: File,
+  ): Promise<Pick<CompanyLogo, 'imageUrl' | 'storagePath'>> {
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Logo firmy musi byc obrazem.')
+    }
+
+    const storagePath = `company-logos/${crypto.randomUUID()}.${getExtension(file.name)}`
+    const { error: uploadError } = await this.client.storage
+      .from(PROJECT_MEDIA_BUCKET)
+      .upload(storagePath, file, {
+        contentType: file.type,
+        upsert: false,
+      })
+
+    if (uploadError) {
+      throw new Error(uploadError.message)
+    }
+
+    const { data: publicUrlData } = this.client.storage
+      .from(PROJECT_MEDIA_BUCKET)
+      .getPublicUrl(storagePath)
+
+    return {
+      imageUrl: publicUrlData.publicUrl,
+      storagePath,
     }
   }
 

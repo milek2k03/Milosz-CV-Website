@@ -1,7 +1,4 @@
-export interface CompanyLogo {
-  name: string
-  shortName: string
-}
+import type { CompanyLogo } from '@/domain/portfolio/entities'
 
 export const companyLogos: CompanyLogo[] = [
   { name: 'Unity Projects', shortName: 'UNITY' },
