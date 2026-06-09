@@ -489,7 +489,7 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
     id: state.id,
     slug: state.slug,
     title: state.title,
-    subtitle: state.subtitle,
+    subtitle: getFallbackProjectText(state.subtitle, state.title),
     summary: state.summary,
     problem: getFallbackProjectText(state.problem, state.summary),
     solution: state.solution,
@@ -518,7 +518,7 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
   if (hasTranslationDraft(state)) {
     const translation = projectTranslationSchema.safeParse({
       title: state.enTitle,
-      subtitle: state.enSubtitle,
+      subtitle: getFallbackProjectText(state.enSubtitle, state.enTitle),
       summary: state.enSummary,
       problem: getFallbackProjectText(state.enProblem, state.enSummary),
       solution: state.enSolution,
@@ -2032,14 +2032,6 @@ function ProjectEditor({
                 value={state.title}
               />
             </Field>
-            <Field label="Podtytul PL">
-              <input
-                className="form-field"
-                onChange={(event) => updateField('subtitle', event.target.value)}
-                required
-                value={state.subtitle}
-              />
-            </Field>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Rola PL">
                 <input
@@ -2092,15 +2084,6 @@ function ProjectEditor({
                 className="form-field"
                 onChange={(event) => updateField('enTitle', event.target.value)}
                 value={state.enTitle}
-              />
-            </Field>
-            <Field label="Subtitle EN">
-              <input
-                className="form-field"
-                onChange={(event) =>
-                  updateField('enSubtitle', event.target.value)
-                }
-                value={state.enSubtitle}
               />
             </Field>
             <div className="grid gap-4 md:grid-cols-2">
