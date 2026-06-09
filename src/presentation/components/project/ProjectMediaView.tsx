@@ -32,7 +32,7 @@ export function ProjectMediaView({
   return (
     <img
       alt={media.alt}
-      className="aspect-video w-full rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] object-contain"
+      className="aspect-video w-full rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] object-fill"
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
       height="1080"
