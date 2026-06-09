@@ -310,12 +310,8 @@ function ProjectMediaGallery({
   const [selectedIndex, setSelectedIndex] = useState(0)
   const selectedMedia = media[selectedIndex] ?? media[0]
   const hasMultipleMedia = media.length > 1
-  const additionalMediaCount = Math.max(media.length - 3, 0)
   const previousLabel = isEnglish ? 'Previous media' : 'Poprzednie media'
   const nextLabel = isEnglish ? 'Next media' : 'Następne media'
-  const moreLabel = isEnglish
-    ? `+${additionalMediaCount} more`
-    : `+${additionalMediaCount} więcej zdjęć`
   const mediaCountLabel = `${selectedIndex + 1} / ${media.length}`
 
   if (!selectedMedia) {
@@ -343,12 +339,6 @@ function ProjectMediaGallery({
           <Images className="size-3.5" />
           {mediaCountLabel}
         </div>
-
-        {additionalMediaCount > 0 ? (
-          <div className="pointer-events-none absolute right-3 top-3 rounded-md border border-[color:var(--border)] bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
-            {moreLabel}
-          </div>
-        ) : null}
 
         {hasMultipleMedia ? (
           <>
@@ -378,7 +368,6 @@ function ProjectMediaGallery({
             const isSelected = index === selectedIndex
             const thumbnailUrl =
               item.type === 'video' ? item.posterUrl : item.url
-            const showMoreBadge = index === 2 && additionalMediaCount > 0
 
             return (
               <button
@@ -405,11 +394,6 @@ function ProjectMediaGallery({
                     Video
                   </span>
                 )}
-                {showMoreBadge ? (
-                  <span className="absolute inset-0 grid place-items-center bg-black/58 text-sm font-semibold text-white">
-                    {moreLabel}
-                  </span>
-                ) : null}
               </button>
             )
           })}
