@@ -157,7 +157,7 @@ export function HomePage() {
                     <h3 className="text-xl font-semibold">
                       {content.projects.unityHeading}
                     </h3>
-                    <div className="grid gap-6">
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                       {unityProjects.map((project) => (
                         <ProjectCard key={project.id} project={project} />
                       ))}
@@ -170,7 +170,7 @@ export function HomePage() {
                     <h3 className="text-xl font-semibold">
                       {content.projects.webHeading}
                     </h3>
-                    <div className="grid gap-6">
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                       {webProjects.map((project) => (
                         <ProjectCard key={project.id} project={project} />
                       ))}

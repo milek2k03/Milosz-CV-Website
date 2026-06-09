@@ -54,9 +54,9 @@ export function PortfolioAreaPage({ area }: PortfolioAreaPageProps) {
       </section>
 
       <Container className="py-12 sm:py-16">
-        <div className="grid gap-6">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {isLoading ? (
-            <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
+            <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)] sm:col-span-2 xl:col-span-3">
               {t('common.loadingProjects')}
             </div>
           ) : localizedProjects.length > 0 ? (
@@ -68,7 +68,7 @@ export function PortfolioAreaPage({ area }: PortfolioAreaPageProps) {
               />
             ))
           ) : (
-            <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
+            <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)] sm:col-span-2 xl:col-span-3">
               {content.areaPages.empty}
             </div>
           )}
