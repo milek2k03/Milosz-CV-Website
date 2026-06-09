@@ -29,6 +29,9 @@ export function SiteShell({ children }: PropsWithChildren) {
   const { data: cvDocument } = useCvDocument(currentLocale)
   const content = getLocalizedSiteContent(siteContent, currentLocale)
   const cvUrl = cvDocument?.url ?? siteProfile.cvUrl ?? '#kontakt'
+  const isHomePage = location.pathname === '/'
+  const homePageLabel =
+    currentLocale === 'en' ? 'Go to homepage' : 'Przejdz na strone glowna'
   const scrollTopLabel =
     currentLocale === 'en' ? 'Scroll to top' : 'Przewiń na górę'
 
@@ -62,6 +65,15 @@ export function SiteShell({ children }: PropsWithChildren) {
     window.scrollTo({ behavior: 'smooth', top: 0 })
   }
 
+  const handleLogoClick = () => {
+    if (!isHomePage) {
+      navigate('/')
+      return
+    }
+
+    scrollToTop()
+  }
+
   return (
     <div className="min-h-svh bg-[color:var(--background)] text-[color:var(--text)]">
       <header className="sticky top-0 z-40 border-b border-[color:var(--border)] bg-[rgba(11,17,32,0.86)] backdrop-blur">
@@ -69,8 +81,8 @@ export function SiteShell({ children }: PropsWithChildren) {
           <button
             type="button"
             className="focus-ring inline-flex cursor-pointer items-center rounded-md border-0 bg-transparent p-0"
-            aria-label={scrollTopLabel}
-            onClick={scrollToTop}
+            aria-label={isHomePage ? scrollTopLabel : homePageLabel}
+            onClick={handleLogoClick}
           >
             <img
               alt={siteProfile.fullName}
