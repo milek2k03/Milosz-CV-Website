@@ -2009,6 +2009,248 @@ function ProjectEditor({
         </Button>
       </div>
 
+      <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
+        <div className="mb-4">
+          <h3 className="font-semibold">Tresci projektu i tlumaczenie</h3>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Lewa kolumna to wersja polska, prawa kolumna to wersja angielska.
+            Pola sa ustawione obok siebie, zeby latwiej tlumaczyc projekt po
+            kolei.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 rounded-lg border border-[color:var(--border)] p-4">
+            <h4 className="font-semibold text-[color:var(--text)]">Polski (PL)</h4>
+            <Field label="Tytul PL">
+              <input
+                className="form-field"
+                onChange={(event) => handleTitleChange(event.target.value)}
+                required
+                value={state.title}
+              />
+            </Field>
+            <Field label="Podtytul PL">
+              <input
+                className="form-field"
+                onChange={(event) => updateField('subtitle', event.target.value)}
+                required
+                value={state.subtitle}
+              />
+            </Field>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Rola PL">
+                <input
+                  className="form-field"
+                  onChange={(event) => updateField('role', event.target.value)}
+                  required
+                  value={state.role}
+                />
+              </Field>
+              <Field label="Czas trwania PL">
+                <input
+                  className="form-field"
+                  onChange={(event) =>
+                    updateField('duration', event.target.value)
+                  }
+                  placeholder="np. 8 tygodni"
+                  value={state.duration}
+                />
+              </Field>
+            </div>
+            <Field label="Krotki opis PL">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) => updateField('summary', event.target.value)}
+                required
+                value={state.summary}
+              />
+            </Field>
+            <Field label="Problem PL">
+              <textarea
+                className="form-field min-h-40"
+                onChange={(event) => updateField('problem', event.target.value)}
+                required
+                value={state.problem}
+              />
+            </Field>
+            <Field label="Rozwiazanie PL">
+              <textarea
+                className="form-field min-h-40"
+                onChange={(event) => updateField('solution', event.target.value)}
+                required
+                value={state.solution}
+              />
+            </Field>
+            <Field label="Zakres prac PL, kazdy punkt w osobnej linii">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) => updateField('scopeText', event.target.value)}
+                value={state.scopeText}
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-[color:var(--border)] p-4">
+            <h4 className="font-semibold text-[color:var(--text)]">English (EN)</h4>
+            <Field label="Title EN">
+              <input
+                className="form-field"
+                onChange={(event) => updateField('enTitle', event.target.value)}
+                value={state.enTitle}
+              />
+            </Field>
+            <Field label="Subtitle EN">
+              <input
+                className="form-field"
+                onChange={(event) =>
+                  updateField('enSubtitle', event.target.value)
+                }
+                value={state.enSubtitle}
+              />
+            </Field>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Role EN">
+                <input
+                  className="form-field"
+                  onChange={(event) => updateField('enRole', event.target.value)}
+                  value={state.enRole}
+                />
+              </Field>
+              <Field label="Duration EN">
+                <input
+                  className="form-field"
+                  onChange={(event) =>
+                    updateField('enDuration', event.target.value)
+                  }
+                  value={state.enDuration}
+                />
+              </Field>
+            </div>
+            <Field label="Short description EN">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) =>
+                  updateField('enSummary', event.target.value)
+                }
+                value={state.enSummary}
+              />
+            </Field>
+            <Field label="Problem EN">
+              <textarea
+                className="form-field min-h-40"
+                onChange={(event) =>
+                  updateField('enProblem', event.target.value)
+                }
+                value={state.enProblem}
+              />
+            </Field>
+            <Field label="Solution EN">
+              <textarea
+                className="form-field min-h-40"
+                onChange={(event) =>
+                  updateField('enSolution', event.target.value)
+                }
+                value={state.enSolution}
+              />
+            </Field>
+            <Field label="Scope EN, each item on a new line">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) =>
+                  updateField('enScopeText', event.target.value)
+                }
+                value={state.enScopeText}
+              />
+            </Field>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
+        <div className="mb-4">
+          <h3 className="font-semibold">Ustawienia projektu</h3>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Wspolne dane techniczne, publikacja, technologie i linki projektu.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Slug">
+            <input
+              className="form-field"
+              onChange={(event) =>
+                updateField('slug', createSlug(event.target.value))
+              }
+              required
+              value={state.slug}
+            />
+          </Field>
+          <Field label="Rok">
+            <input
+              className="form-field"
+              min="2000"
+              onChange={(event) => updateField('year', event.target.value)}
+              required
+              type="number"
+              value={state.year}
+            />
+          </Field>
+          <Field label="Status">
+            <select
+              className="form-field"
+              onChange={(event) =>
+                updateField('status', event.target.value as ProjectStatus)
+              }
+              value={state.status}
+            >
+              <option value="draft">draft</option>
+              <option value="published">published</option>
+            </select>
+          </Field>
+          <Field label="Obszar portfolio">
+            <select
+              className="form-field"
+              onChange={(event) =>
+                updateField('area', event.target.value as ProjectArea)
+              }
+              value={state.area}
+            >
+              <option value="unity">Unity / VR</option>
+              <option value="web">Strony internetowe</option>
+            </select>
+          </Field>
+          <Field label="Technologie, po przecinku">
+            <input
+              className="form-field"
+              onChange={(event) =>
+                updateField('technologiesText', event.target.value)
+              }
+              value={state.technologiesText}
+            />
+          </Field>
+          <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[color:var(--border)] px-3 text-sm text-[color:var(--muted)]">
+            <input
+              checked={state.featured}
+              className="size-4 accent-cyan-300"
+              onChange={(event) => updateField('featured', event.target.checked)}
+              type="checkbox"
+            />
+            Projekt wyrozniony
+          </label>
+        </div>
+        <div className="mt-4">
+          <Field label="Linki, kazdy w osobnej linii">
+            <textarea
+              className="form-field min-h-24"
+              onChange={(event) => updateField('linksText', event.target.value)}
+              placeholder="https://example.com lub Wdrozenie | https://example.com | live"
+              value={state.linksText}
+            />
+          </Field>
+        </div>
+      </section>
+
+      <fieldset className="hidden" disabled>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Tytuł">
           <input
@@ -2230,6 +2472,7 @@ function ProjectEditor({
           Projekt wyróżniony
         </label>
       </div>
+      </fieldset>
 
       <div className="mt-6 rounded-lg border border-[color:var(--border)] p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
