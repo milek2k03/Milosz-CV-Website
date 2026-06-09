@@ -24,6 +24,13 @@ interface ProjectCaseStudyProps {
 const uniqueItems = (items: string[]) =>
   Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)))
 
+const normalizeListItem = (item: string) =>
+  item
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .replace(/\s+/g, ' ')
+
 const splitTextItems = (value: string) =>
   value
     .replace(/\r/g, '')
@@ -82,10 +89,14 @@ const getResponsibilityItems = (project: Project) => {
 }
 
 const getAchievementItems = (project: Project) => {
+  const responsibilityKeys = new Set(
+    getResponsibilityItems(project).map(normalizeListItem),
+  )
   const solutionItems = splitTextItems(project.solution)
-  const fallbackItems = project.scope.slice(0, 4)
 
-  return uniqueItems([...solutionItems, ...fallbackItems]).slice(0, 4)
+  return uniqueItems(solutionItems)
+    .filter((item) => !responsibilityKeys.has(normalizeListItem(item)))
+    .slice(0, 4)
 }
 
 const findTechnology = (project: Project, patterns: RegExp[]) =>
