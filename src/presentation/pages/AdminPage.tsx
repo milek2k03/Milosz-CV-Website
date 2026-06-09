@@ -295,7 +295,7 @@ const projectFieldLabels: Record<string, string> = {
   links: 'Linki',
   problem: 'Problem',
   role: 'Rola',
-  scope: 'Zakres prac',
+  scope: 'Czym sie zajmowalem',
   slug: 'Slug',
   solution: 'Najważniejsze osiągnięcia',
   subtitle: 'Podtytuł',
@@ -306,7 +306,7 @@ const projectFieldLabels: Record<string, string> = {
 }
 
 const translationFieldLabels: Record<string, string> = {
-  scope: 'Zakres prac EN',
+  scope: 'What I worked on EN',
   solution: 'Key achievements EN',
   subtitle: 'Podtytuł EN',
   summary: 'Krótki opis EN',
@@ -2068,19 +2068,19 @@ function ProjectEditor({
                 value={state.summary}
               />
             </Field>
+            <Field label="Czym sie zajmowalem PL, kazdy punkt w osobnej linii">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) => updateField('scopeText', event.target.value)}
+                value={state.scopeText}
+              />
+            </Field>
             <Field label="Najwazniejsze osiagniecia PL">
               <textarea
                 className="form-field min-h-40"
                 onChange={(event) => updateField('solution', event.target.value)}
                 required
                 value={state.solution}
-              />
-            </Field>
-            <Field label="Zakres prac PL, kazdy punkt w osobnej linii">
-              <textarea
-                className="form-field min-h-32"
-                onChange={(event) => updateField('scopeText', event.target.value)}
-                value={state.scopeText}
               />
             </Field>
           </div>
@@ -2130,6 +2130,15 @@ function ProjectEditor({
                 value={state.enSummary}
               />
             </Field>
+            <Field label="What I worked on EN, each item on a new line">
+              <textarea
+                className="form-field min-h-32"
+                onChange={(event) =>
+                  updateField('enScopeText', event.target.value)
+                }
+                value={state.enScopeText}
+              />
+            </Field>
             <Field label="Key achievements EN">
               <textarea
                 className="form-field min-h-40"
@@ -2137,15 +2146,6 @@ function ProjectEditor({
                   updateField('enSolution', event.target.value)
                 }
                 value={state.enSolution}
-              />
-            </Field>
-            <Field label="Scope EN, each item on a new line">
-              <textarea
-                className="form-field min-h-32"
-                onChange={(event) =>
-                  updateField('enScopeText', event.target.value)
-                }
-                value={state.enScopeText}
               />
             </Field>
           </div>
@@ -2349,7 +2349,7 @@ function ProjectEditor({
             value={state.technologiesText}
           />
         </Field>
-        <Field label="Zakres prac, każdy punkt w osobnej linii">
+        <Field label="Czym sie zajmowalem, kazdy punkt w osobnej linii">
           <textarea
             className="form-field min-h-32"
             onChange={(event) => updateField('scopeText', event.target.value)}
@@ -2436,7 +2436,7 @@ function ProjectEditor({
                 />
               </Field>
             </div>
-            <Field label="EN scope, each item on a new line">
+            <Field label="What I worked on EN, each item on a new line">
               <textarea
                 className="form-field min-h-32"
                 onChange={(event) =>
