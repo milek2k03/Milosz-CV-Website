@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AppProviders } from '@/app/providers/AppProviders'
+import { PageViewTracker } from '@/presentation/analytics/PageViewTracker'
 import { ScrollToTop } from '@/presentation/layout/ScrollToTop'
 import { HomePage } from '@/presentation/pages/HomePage'
 import { NotFoundPage } from '@/presentation/pages/NotFoundPage'
@@ -31,6 +32,7 @@ function App() {
     <AppProviders>
       <Router>
         <ScrollToTop />
+        <PageViewTracker />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />

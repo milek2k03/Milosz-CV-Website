@@ -163,3 +163,30 @@ export interface PortfolioSettings {
   webPortfolioUrl: string
   updatedAt?: string
 }
+
+export type AnalyticsPeriod = 'day' | 'week' | 'month' | 'year'
+
+export interface AnalyticsDataPoint {
+  label: string
+  views: number
+  visitors: number
+}
+
+export interface AnalyticsTopPage {
+  path: string
+  views: number
+}
+
+export interface AnalyticsSummary {
+  totalViews: number
+  totalVisitors: number
+  periods: Record<AnalyticsPeriod, AnalyticsDataPoint[]>
+  topPages: AnalyticsTopPage[]
+}
+
+export interface PageViewInput {
+  path: string
+  locale: ProjectLocale
+  referrer?: string
+  sessionId: string
+}

@@ -72,8 +72,8 @@ export async function optimizeImageFile(
     return file
   }
 
-  let targetWidth = sourceWidth
-  let targetHeight = sourceHeight
+  let targetWidth: number
+  let targetHeight: number
   const sourceRatio = sourceWidth / sourceHeight
 
   if (forceAspectRatio) {

@@ -1,8 +1,10 @@
 import { defaultSiteContent } from '@/content/defaultSiteContent'
 import { seedProjects } from '@/content/seedProjects'
 import type {
+  AnalyticsSummary,
   CompanyLogo,
   CvDocument,
+  PageViewInput,
   Project,
   ProjectLocale,
   ProjectMedia,
@@ -15,7 +17,27 @@ import type { PortfolioRepository } from '@/domain/portfolio/repositories'
 
 const cloneProjects = () => seedProjects.map((project) => ({ ...project }))
 
+const emptyAnalyticsSummary: AnalyticsSummary = {
+  totalViews: 0,
+  totalVisitors: 0,
+  periods: {
+    day: [],
+    week: [],
+    month: [],
+    year: [],
+  },
+  topPages: [],
+}
+
 export class FallbackPortfolioRepository implements PortfolioRepository {
+  async trackPageView(input: PageViewInput): Promise<void> {
+    void input
+  }
+
+  async getAnalyticsSummary(): Promise<AnalyticsSummary> {
+    return emptyAnalyticsSummary
+  }
+
   async listPublishedProjects(): Promise<Project[]> {
     return cloneProjects().filter((project) => project.status === 'published')
   }

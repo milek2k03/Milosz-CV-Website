@@ -1,6 +1,8 @@
 import type {
+  AnalyticsSummary,
   CompanyLogo,
   CvDocument,
+  PageViewInput,
   Project,
   ProjectLocale,
   ProjectMedia,
@@ -11,6 +13,8 @@ import type {
 } from '@/domain/portfolio/entities'
 
 export interface PortfolioRepository {
+  trackPageView(input: PageViewInput): Promise<void>
+  getAnalyticsSummary(): Promise<AnalyticsSummary>
   listPublishedProjects(): Promise<Project[]>
   listAdminProjects(): Promise<Project[]>
   getProjectBySlug(slug: string): Promise<Project | null>

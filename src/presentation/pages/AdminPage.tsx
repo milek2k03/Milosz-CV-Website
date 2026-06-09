@@ -1,19 +1,21 @@
 import {
-  BookOpen,
+  BarChart3,
+  Eye,
   FileText,
   FolderKanban,
   Home,
   ImageIcon,
   ImagePlus,
   LogOut,
-  Mail,
   Plus,
   RotateCcw,
   Save,
   Settings,
   Trash2,
+  TrendingUp,
   Upload,
   UserRound,
+  Users,
 } from 'lucide-react'
 import type { FormEvent, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
@@ -21,6 +23,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Toaster } from 'react-hot-toast'
 import { z } from 'zod'
+import { useAnalyticsSummary } from '@/application/analytics/useAnalytics'
 import { useSupabaseSession } from '@/application/auth/useSupabaseSession'
 import {
   useAdminProjects,
@@ -37,6 +40,7 @@ import brandLogoUrl from '@/assets/brand/milosz-logo.png'
 import { defaultSiteContent } from '@/content/defaultSiteContent'
 import { hasSupabaseConfig } from '@/config/env'
 import type {
+  AnalyticsDataPoint,
   CompanyLogo,
   Project,
   ProjectArea,
@@ -75,14 +79,14 @@ const linkTypes: ProjectLinkType[] = [
   'other',
 ]
 
-type AdminSection = 'guide' | 'content' | 'projects' | 'media' | 'settings'
+type AdminSection = 'analytics' | 'content' | 'projects' | 'media' | 'settings'
 
 const adminNavItems = [
   {
-    id: 'guide',
-    label: 'Instrukcja',
-    description: 'Jak pracować z panelem',
-    icon: BookOpen,
+    id: 'analytics',
+    label: 'Statystyki',
+    description: 'Ruch i wejscia na strone',
+    icon: BarChart3,
   },
   {
     id: 'content',
@@ -768,7 +772,7 @@ function AdminWorkspace({
         />
 
         <main className="min-w-0 rounded-lg border border-[color:var(--border)] bg-[color:var(--card)] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.18)] sm:p-6">
-          {activeSection === 'guide' ? <AdminGuidePanel /> : null}
+          {activeSection === 'analytics' ? <AnalyticsPanel /> : null}
           {activeSection === 'content' ? <SiteContentManager /> : null}
           {activeSection === 'projects' ? (
             <ProjectsManager
@@ -953,55 +957,229 @@ function AdminSidebar({
   )
 }
 
-function AdminGuidePanel() {
+const analyticsPeriodConfig = [
+  {
+    key: 'day',
+    title: 'Dzien',
+    description: 'Ostatnie 24 godziny',
+  },
+  {
+    key: 'week',
+    title: 'Tydzien',
+    description: 'Ostatnie 7 dni',
+  },
+  {
+    key: 'month',
+    title: 'Miesiac',
+    description: 'Ostatnie 30 dni',
+  },
+  {
+    key: 'year',
+    title: 'Rok',
+    description: 'Ostatnie 12 miesiecy',
+  },
+] as const
+
+const formatAnalyticsNumber = (value: number) =>
+  new Intl.NumberFormat('pl-PL').format(value)
+
+function AnalyticsPanel() {
+  const analyticsQuery = useAnalyticsSummary(true)
+  const summary = analyticsQuery.data
+
   return (
     <section id="admin-active-section" className="grid gap-5">
       <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
-        <h2 className="text-2xl font-semibold">Instrukcja</h2>
-        <p className="mt-3 max-w-3xl leading-7 text-slate-300">
-          Panel jest podzielony na sekcje. Treści strony zapisujesz w module
-          Treści, projekty jako osobne case studies, a CV i media przez
-          Supabase Storage.
-        </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
+              Statystyki
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">Ruch na stronie</h2>
+            <p className="mt-3 max-w-3xl leading-7 text-slate-300">
+              Podglad wejsc na portfolio z podzialem na dzien, tydzien,
+              miesiac i rok. Panel nie zlicza odwiedzin na sciezce /admin.
+            </p>
+          </div>
+          <Button
+            icon={<RotateCcw className="size-4" />}
+            onClick={() => void analyticsQuery.refetch()}
+            type="button"
+          >
+            Odswiez
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <AdminGuideCard
-          icon={<FileText className="size-5" />}
-          title="Treści"
-          text="Edytuj PL/EN, opisy sekcji, SEO oraz logotypy firm."
-        />
-        <AdminGuideCard
-          icon={<FolderKanban className="size-5" />}
-          title="Projekty"
-          text="Dodawaj case studies, tłumaczenia, linki i media projektu."
-        />
-        <AdminGuideCard
-          icon={<Mail className="size-5" />}
-          title="Kontakt"
-          text="Formularz kontaktowy korzysta z Supabase Edge Function."
-        />
-      </div>
+      {analyticsQuery.isLoading ? (
+        <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-6 text-sm text-[color:var(--muted)]">
+          Ladowanie statystyk...
+        </div>
+      ) : null}
+
+      {analyticsQuery.error ? (
+        <div className="rounded-lg border border-red-400/30 bg-red-400/10 p-6 text-sm text-red-100">
+          {getErrorMessage(analyticsQuery.error)}
+        </div>
+      ) : null}
+
+      {summary ? (
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <AnalyticsMetricCard
+              icon={<Users className="size-5" />}
+              label="Osoby lacznie"
+              value={summary.totalVisitors}
+            />
+            <AnalyticsMetricCard
+              icon={<Eye className="size-5" />}
+              label="Wyswietlenia lacznie"
+              value={summary.totalViews}
+            />
+            <AnalyticsMetricCard
+              icon={<TrendingUp className="size-5" />}
+              label="Najaktywniejszy okres"
+              value={Math.max(
+                ...Object.values(summary.periods)
+                  .flat()
+                  .map((item) => item.views),
+                0,
+              )}
+            />
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            {analyticsPeriodConfig.map((period) => (
+              <AnalyticsChart
+                data={summary.periods[period.key]}
+                description={period.description}
+                key={period.key}
+                title={period.title}
+              />
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
+            <h3 className="font-semibold">Najczesciej odwiedzane strony</h3>
+            {summary.topPages.length > 0 ? (
+              <ul className="mt-4 grid gap-3">
+                {summary.topPages.map((page) => (
+                  <li
+                    className="flex items-center justify-between gap-4 rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-sm"
+                    key={page.path}
+                  >
+                    <span className="truncate text-slate-200">{page.path}</span>
+                    <span className="shrink-0 font-semibold text-[color:var(--primary)]">
+                      {formatAnalyticsNumber(page.views)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-[color:var(--muted)]">
+                Brak danych. Pierwsze wejscia pojawia sie tutaj po wdrozeniu
+                migracji Supabase i publicznej strony.
+              </p>
+            )}
+          </div>
+        </>
+      ) : null}
     </section>
   )
 }
 
-function AdminGuideCard({
+function AnalyticsMetricCard({
   icon,
-  text,
-  title,
+  label,
+  value,
 }: {
   icon: ReactNode
-  text: string
-  title: string
+  label: string
+  value: number
 }) {
   return (
     <article className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
-      <div className="mb-4 grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] text-[#d8b982]">
+      <div className="mb-5 grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--primary)]">
         {icon}
       </div>
-      <h3 className="font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[color:var(--muted)]">{text}</p>
+      <p className="text-sm text-[color:var(--muted)]">{label}</p>
+      <p className="mt-2 text-3xl font-semibold">
+        {formatAnalyticsNumber(value)}
+      </p>
+    </article>
+  )
+}
+
+function AnalyticsChart({
+  data,
+  description,
+  title,
+}: {
+  data: AnalyticsDataPoint[]
+  description: string
+  title: string
+}) {
+  const maxValue = Math.max(
+    ...data.flatMap((item) => [item.views, item.visitors]),
+    1,
+  )
+
+  return (
+    <article className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            {description}
+          </p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-3 text-xs text-[color:var(--muted)]">
+          <span className="inline-flex items-center gap-1">
+            <span className="size-2 rounded-full bg-[color:var(--primary)]" />
+            Wejscia
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="size-2 rounded-full bg-[#d8b982]" />
+            Osoby
+          </span>
+        </div>
+      </div>
+
+      {data.length > 0 ? (
+        <div className="h-56">
+          <div className="flex h-48 items-end gap-1 border-b border-[color:var(--border)] pb-2">
+            {data.map((item, index) => (
+              <div
+                className="group flex h-full min-w-0 flex-1 items-end justify-center gap-0.5"
+                key={`${item.label}-${index}`}
+                title={`${item.label}: ${item.views} wejsc / ${item.visitors} osob`}
+              >
+                <span
+                  className="w-full max-w-3 rounded-t bg-[color:var(--primary)]/80 transition-colors group-hover:bg-[color:var(--primary)]"
+                  style={{
+                    height: `${Math.max((item.views / maxValue) * 100, item.views > 0 ? 4 : 0)}%`,
+                  }}
+                />
+                <span
+                  className="w-full max-w-3 rounded-t bg-[#d8b982]/80 transition-colors group-hover:bg-[#d8b982]"
+                  style={{
+                    height: `${Math.max((item.visitors / maxValue) * 100, item.visitors > 0 ? 4 : 0)}%`,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between gap-2 text-[10px] text-[color:var(--muted)]">
+            <span>{data[0]?.label}</span>
+            <span>{data[Math.floor(data.length / 2)]?.label}</span>
+            <span>{data[data.length - 1]?.label}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="grid h-56 place-items-center rounded-md border border-dashed border-[color:var(--border)] text-sm text-[color:var(--muted)]">
+          Brak danych
+        </div>
+      )}
     </article>
   )
 }

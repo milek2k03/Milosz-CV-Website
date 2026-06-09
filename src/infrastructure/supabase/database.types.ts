@@ -167,6 +167,26 @@ type ContactMessageInsert = {
   status?: 'unread' | 'read' | 'archived'
 }
 
+type AnalyticsPageViewRow = {
+  id: string
+  path: string
+  locale: 'pl' | 'en'
+  referrer: string | null
+  session_id: string
+  user_agent: string | null
+  created_at: string
+}
+
+type AnalyticsPageViewInsert = {
+  id?: string
+  path: string
+  locale?: 'pl' | 'en'
+  referrer?: string | null
+  session_id: string
+  user_agent?: string | null
+  created_at?: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -212,9 +232,29 @@ export type Database = {
         Update: Partial<ContactMessageInsert>
         Relationships: []
       }
+      analytics_page_views: {
+        Row: AnalyticsPageViewRow
+        Insert: AnalyticsPageViewInsert
+        Update: Partial<AnalyticsPageViewInsert>
+        Relationships: []
+      }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      track_page_view: {
+        Args: {
+          p_locale: 'pl' | 'en'
+          p_path: string
+          p_referrer: string | null
+          p_session_id: string
+        }
+        Returns: undefined
+      }
+      get_analytics_summary: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }

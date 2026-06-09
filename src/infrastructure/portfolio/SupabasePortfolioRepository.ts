@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
+  AnalyticsDataPoint,
+  AnalyticsPeriod,
+  AnalyticsSummary,
   CompanyLogo,
   CvDocument,
+  PageViewInput,
   Project,
   ProjectLocalizedContent,
   ProjectLocale,
@@ -36,6 +40,69 @@ type DeepPartial<T> = {
     : T[Key] extends object
       ? DeepPartial<T[Key]>
       : T[Key]
+}
+type JsonRecord = { [key: string]: Json | undefined }
+
+const analyticsPeriods: AnalyticsPeriod[] = ['day', 'week', 'month', 'year']
+
+const emptyAnalyticsSummary: AnalyticsSummary = {
+  totalViews: 0,
+  totalVisitors: 0,
+  periods: {
+    day: [],
+    week: [],
+    month: [],
+    year: [],
+  },
+  topPages: [],
+}
+
+const isRecord = (value: unknown): value is JsonRecord =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+
+const toNumber = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : 0
+
+const toString = (value: unknown) => (typeof value === 'string' ? value : '')
+
+const parseAnalyticsDataPoints = (value: unknown): AnalyticsDataPoint[] => {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .filter(isRecord)
+    .map((item) => ({
+      label: toString(item.label),
+      views: toNumber(item.views),
+      visitors: toNumber(item.visitors),
+    }))
+}
+
+const parseAnalyticsSummary = (value: Json | null): AnalyticsSummary => {
+  if (!isRecord(value)) {
+    return emptyAnalyticsSummary
+  }
+
+  const periods = isRecord(value.periods) ? value.periods : {}
+
+  return {
+    totalViews: toNumber(value.totalViews),
+    totalVisitors: toNumber(value.totalVisitors),
+    periods: analyticsPeriods.reduce<AnalyticsSummary['periods']>(
+      (result, period) => ({
+        ...result,
+        [period]: parseAnalyticsDataPoints(periods[period]),
+      }),
+      { ...emptyAnalyticsSummary.periods },
+    ),
+    topPages: Array.isArray(value.topPages)
+      ? value.topPages.filter(isRecord).map((item) => ({
+          path: toString(item.path),
+          views: toNumber(item.views),
+        }))
+      : [],
+  }
 }
 
 const sanitizeFileName = (fileName: string) =>
@@ -116,6 +183,29 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
 
   constructor(client: SupabaseClient<Database>) {
     this.client = client
+  }
+
+  async trackPageView(input: PageViewInput): Promise<void> {
+    const { error } = await this.client.rpc('track_page_view', {
+      p_locale: input.locale,
+      p_path: input.path,
+      p_referrer: input.referrer ?? null,
+      p_session_id: input.sessionId,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async getAnalyticsSummary(): Promise<AnalyticsSummary> {
+    const { data, error } = await this.client.rpc('get_analytics_summary')
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return parseAnalyticsSummary(data)
   }
 
   async listPublishedProjects(): Promise<Project[]> {
