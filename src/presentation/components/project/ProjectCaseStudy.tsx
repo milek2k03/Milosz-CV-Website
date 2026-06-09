@@ -1,4 +1,13 @@
-import { ChevronLeft, ChevronRight, ExternalLink, Images } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Images,
+  Layers,
+  Monitor,
+  Trophy,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Project, ProjectMedia } from '@/domain/portfolio/entities'
@@ -11,13 +20,100 @@ interface ProjectCaseStudyProps {
   project: Project
 }
 
+const uniqueItems = (items: string[]) => Array.from(new Set(items))
+
+const splitTextItems = (value: string) =>
+  value
+    .replace(/\r/g, '')
+    .split(/\n+|[.!?]\s+/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 8)
+
+const getAboutParagraphs = (project: Project) => {
+  const paragraphs = project.summary
+    .replace(/\r/g, '')
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  if (paragraphs.length > 1) {
+    return paragraphs.slice(0, 4)
+  }
+
+  const summaryItems = splitTextItems(project.summary)
+
+  if (summaryItems.length > 1) {
+    return summaryItems.slice(0, 4)
+  }
+
+  return [project.summary || project.subtitle].filter(Boolean).slice(0, 4)
+}
+
+const getAchievementItems = (project: Project) => {
+  const solutionItems = splitTextItems(project.solution)
+  const fallbackItems = project.scope.slice(0, 4)
+
+  return uniqueItems([...solutionItems, ...fallbackItems]).slice(0, 4)
+}
+
+const findTechnology = (project: Project, patterns: RegExp[]) =>
+  project.technologies.find((technology) =>
+    patterns.some((pattern) => pattern.test(technology)),
+  )
+
+const getProjectEngine = (project: Project) =>
+  findTechnology(project, [/unity/i, /unreal/i, /godot/i]) ??
+  (project.area === 'web' ? 'React / Vite' : 'Unity')
+
+const getProjectPlatform = (project: Project) => {
+  const hasSteamLink = project.links.some((link) =>
+    /store\.steampowered\.com|steam/i.test(link.url),
+  )
+  const hasSteamTechnology = Boolean(findTechnology(project, [/steam/i]))
+  const hasVrTechnology = Boolean(
+    findTechnology(project, [/vr/i, /openxr/i, /oculus/i, /quest/i, /meta/i]),
+  )
+
+  if (hasSteamLink || hasSteamTechnology) {
+    return 'PC / Steam'
+  }
+
+  if (hasVrTechnology) {
+    return 'VR'
+  }
+
+  return project.area === 'web' ? 'Web' : 'PC'
+}
+
+const getProjectLabels = (isEnglish: boolean) => ({
+  about: isEnglish ? 'About the project' : 'O projekcie',
+  achievements: isEnglish ? 'Key achievements' : 'Najważniejsze osiągnięcia',
+  duration: isEnglish ? 'Time on project' : 'Czas pracy',
+  engine: isEnglish ? 'Engine' : 'Silnik',
+  role: isEnglish ? 'My role' : 'Moja rola',
+  platform: isEnglish ? 'Platform' : 'Platforma',
+  whatIDid: isEnglish ? 'What I worked on' : 'Czym się zajmowałem',
+  year: isEnglish ? 'Year' : 'Rok',
+})
+
 export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
   const { i18n, t } = useTranslation()
   const localizedProject = localizeProject(project, i18n.language)
+  const isEnglish = i18n.language.toLowerCase().startsWith('en')
+  const labels = getProjectLabels(isEnglish)
+  const aboutParagraphs = getAboutParagraphs(localizedProject)
+  const achievementItems = getAchievementItems(localizedProject)
+  const projectFacts = [
+    { label: labels.role, value: localizedProject.role },
+    { label: labels.year, value: String(localizedProject.year) },
+    { label: labels.duration, value: localizedProject.duration ?? '-' },
+    { label: labels.engine, value: getProjectEngine(localizedProject) },
+    { label: labels.platform, value: getProjectPlatform(localizedProject) },
+  ]
 
   return (
     <article className="py-12 sm:py-16">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <div className="mb-5 flex flex-wrap gap-2">
             <Badge tone="accent">{localizedProject.role}</Badge>
@@ -35,13 +131,31 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
         </div>
 
         <aside className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
-          <p className="mb-3 text-xs font-semibold uppercase text-[color:var(--primary)]">
-            {t('project.technologies')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {localizedProject.technologies.map((technology) => (
-              <Badge key={technology}>{technology}</Badge>
+          <div className="grid gap-4">
+            {projectFacts.map((item) => (
+              <div
+                className="grid gap-1 border-b border-[color:var(--border)] pb-3 last:border-b-0 last:pb-0"
+                key={item.label}
+              >
+                <span className="text-xs font-semibold uppercase text-[color:var(--muted)]">
+                  {item.label}
+                </span>
+                <span className="text-sm font-semibold text-[color:var(--text)]">
+                  {item.value}
+                </span>
+              </div>
             ))}
+          </div>
+
+          <div className="mt-5 border-t border-[color:var(--border)] pt-5">
+            <p className="mb-3 text-xs font-semibold uppercase text-[color:var(--primary)]">
+              {t('project.technologies')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {localizedProject.technologies.map((technology) => (
+                <Badge key={technology}>{technology}</Badge>
+              ))}
+            </div>
           </div>
         </aside>
       </div>
@@ -49,7 +163,7 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
       <div className="mt-10">
         {localizedProject.media.length > 0 ? (
           <ProjectMediaGallery
-            isEnglish={i18n.language.toLowerCase().startsWith('en')}
+            isEnglish={isEnglish}
             media={localizedProject.media}
           />
         ) : (
@@ -59,32 +173,80 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
         )}
       </div>
 
-      <div className="mt-12 grid gap-8 lg:grid-cols-2">
-        <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-          <h2 className="text-xl font-semibold">{t('project.problem')}</h2>
-          <p className="mt-4 leading-7 text-slate-300">
-            {localizedProject.problem}
+      <section className="mt-10 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+            <Layers className="size-5 text-[color:var(--primary)]" />
+          </div>
+          <h2 className="text-2xl font-semibold">{labels.about}</h2>
+        </div>
+        <div className="grid max-w-4xl gap-4 text-sm leading-7 text-slate-300 sm:text-base">
+          {aboutParagraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <section className="rounded-lg border border-cyan-300/25 bg-[rgba(56,189,248,0.07)] p-6">
+          <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
+            {labels.role}
           </p>
+          <h2 className="mt-3 text-2xl font-semibold text-[color:var(--text)]">
+            {localizedProject.role}
+          </h2>
+          {localizedProject.duration ? (
+            <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
+              {localizedProject.duration} · {localizedProject.year}
+            </p>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
+              {localizedProject.year}
+            </p>
+          )}
         </section>
+
         <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-          <h2 className="text-xl font-semibold">{t('project.solution')}</h2>
-          <p className="mt-4 leading-7 text-slate-300">
-            {localizedProject.solution}
-          </p>
+          <div className="mb-5 flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+              <Monitor className="size-5 text-[color:var(--primary)]" />
+            </div>
+            <h2 className="text-2xl font-semibold">{labels.whatIDid}</h2>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {localizedProject.scope.map((item) => (
+              <li
+                className="flex gap-3 rounded-md border border-[color:var(--border)] bg-[color:var(--background)] p-4 text-sm leading-6 text-slate-300"
+                key={item}
+              >
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[color:var(--primary)]" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
 
-      <section className="mt-8 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-        <h2 className="text-xl font-semibold">{t('project.scope')}</h2>
-        <ul className="mt-5 grid gap-3 text-slate-300 sm:grid-cols-2">
-          {localizedProject.scope.map((item) => (
-            <li key={item} className="flex gap-3">
-              <span className="mt-2 size-1.5 rounded-full bg-[color:var(--primary)]" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {achievementItems.length > 0 ? (
+        <section className="mt-8 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+              <Trophy className="size-5 text-amber-300" />
+            </div>
+            <h2 className="text-2xl font-semibold">{labels.achievements}</h2>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {achievementItems.map((item) => (
+              <li
+                className="rounded-md border border-amber-300/18 bg-amber-300/[0.055] p-4 text-sm font-medium leading-6 text-slate-200"
+                key={item}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {localizedProject.links.length > 0 ? (
         <div className="mt-8 flex flex-wrap gap-3">
@@ -122,6 +284,10 @@ function ProjectMediaGallery({
     ? `+${additionalMediaCount} more`
     : `+${additionalMediaCount} więcej zdjęć`
   const mediaCountLabel = `${selectedIndex + 1} / ${media.length}`
+
+  if (!selectedMedia) {
+    return null
+  }
 
   const goToPrevious = () => {
     setSelectedIndex((currentIndex) =>
