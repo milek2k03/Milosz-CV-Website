@@ -71,12 +71,6 @@ const getAboutParagraphs = (project: Project) => {
     return paragraphs.slice(0, 4)
   }
 
-  const summaryItems = splitTextItems(project.summary)
-
-  if (summaryItems.length > 1) {
-    return summaryItems.slice(0, 4)
-  }
-
   return splitLongText(project.summary || project.subtitle).slice(0, 4)
 }
 
