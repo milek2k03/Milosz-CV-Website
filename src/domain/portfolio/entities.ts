@@ -2,6 +2,7 @@ export type ProjectStatus = 'draft' | 'published'
 export type ProjectArea = 'unity' | 'web'
 export type ProjectMediaType = 'image' | 'video'
 export type ProjectLinkType =
+  | 'live'
   | 'demo'
   | 'repository'
   | 'case-study'

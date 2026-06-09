@@ -67,6 +67,7 @@ import { optimizeImageFile } from '@/shared/media/optimizeImageFile'
 import { cn } from '@/shared/utils/cn'
 
 const linkTypes: ProjectLinkType[] = [
+  'live',
   'demo',
   'repository',
   'case-study',
@@ -120,6 +121,7 @@ const projectLinkSchema = z.object({
   label: z.string().min(1, 'podaj etykietę linku'),
   url: z.string().min(1, 'podaj adres linku'),
   type: z.union([
+    z.literal('live'),
     z.literal('demo'),
     z.literal('repository'),
     z.literal('case-study'),
@@ -337,11 +339,35 @@ const splitLineList = (value: string) =>
 const isProjectLinkType = (value: string): value is ProjectLinkType =>
   linkTypes.includes(value as ProjectLinkType)
 
+const isUrl = (value: string) => /^https?:\/\//i.test(value)
+
+const getLinkLabelFromUrl = (url: string) => {
+  if (/store\.steampowered\.com/i.test(url)) {
+    return 'Steam'
+  }
+
+  if (/github\.com/i.test(url)) {
+    return 'GitHub'
+  }
+
+  if (/youtu\.be|youtube\.com/i.test(url)) {
+    return 'Video'
+  }
+
+  return 'Link'
+}
+
 const parseLinks = (value: string): ProjectLink[] =>
   splitLineList(value).map((line) => {
-    const [label = '', url = '', type = 'other'] = line
+    const parts = line
       .split('|')
       .map((part) => part.trim())
+      .filter(Boolean)
+    const [first = '', second = '', third = 'other'] = parts
+    const hasOnlyUrl = parts.length === 1 && isUrl(first)
+    const label = hasOnlyUrl ? getLinkLabelFromUrl(first) : first
+    const url = hasOnlyUrl ? first : second
+    const type = hasOnlyUrl ? 'live' : third
 
     return {
       label,
@@ -2103,11 +2129,11 @@ function ProjectEditor({
             value={state.scopeText}
           />
         </Field>
-        <Field label="Linki: label | url | typ">
+        <Field label="Linki, każdy w osobnej linii">
           <textarea
             className="form-field min-h-24"
             onChange={(event) => updateField('linksText', event.target.value)}
-            placeholder="Demo | https://example.com | demo"
+            placeholder="https://example.com lub Wdrozenie | https://example.com | live"
             value={state.linksText}
           />
         </Field>

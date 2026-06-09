@@ -18,6 +18,7 @@ type TranslationRow =
 type ProjectInsert = Database['public']['Tables']['projects']['Insert']
 
 const linkTypes: ProjectLinkType[] = [
+  'live',
   'demo',
   'repository',
   'case-study',
