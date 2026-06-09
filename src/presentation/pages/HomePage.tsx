@@ -87,7 +87,7 @@ export function HomePage() {
               ))}
             </div>
             <h1 className="text-balance text-5xl font-semibold text-[color:var(--text)] sm:text-6xl">
-              {siteProfile.fullName}
+              {t('home.heroTitle')}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">
               {content.heroDescription}

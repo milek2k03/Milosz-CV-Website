@@ -24,6 +24,7 @@ export const resources = {
         tagline: 'Unity, VR, Software Development',
       },
       home: {
+        heroTitle: 'O mnie',
         seoDescription:
           'Portfolio Miłosza Czecha: projekty Unity, VR i web z opisem zakresu prac, decyzji technicznych oraz efektów wdrożenia.',
         heroDescription:
@@ -170,6 +171,7 @@ export const resources = {
         tagline: 'Unity, VR, Software Development',
       },
       home: {
+        heroTitle: 'About me',
         seoDescription:
           'Miłosz Czech portfolio: Unity, VR and web projects with scope, technical decisions and delivery context.',
         heroDescription:
