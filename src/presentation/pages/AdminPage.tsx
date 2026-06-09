@@ -297,7 +297,7 @@ const projectFieldLabels: Record<string, string> = {
   role: 'Rola',
   scope: 'Zakres prac',
   slug: 'Slug',
-  solution: 'Rozwiązanie',
+  solution: 'Najważniejsze osiągnięcia',
   subtitle: 'Podtytuł',
   summary: 'Krótki opis',
   technologies: 'Technologie',
@@ -307,7 +307,7 @@ const projectFieldLabels: Record<string, string> = {
 
 const translationFieldLabels: Record<string, string> = {
   scope: 'Zakres prac EN',
-  solution: 'Rozwiązanie EN',
+  solution: 'Key achievements EN',
   subtitle: 'Podtytuł EN',
   summary: 'Krótki opis EN',
   title: 'Tytuł EN',
@@ -2068,7 +2068,7 @@ function ProjectEditor({
                 value={state.summary}
               />
             </Field>
-            <Field label="Rozwiazanie PL">
+            <Field label="Najwazniejsze osiagniecia PL">
               <textarea
                 className="form-field min-h-40"
                 onChange={(event) => updateField('solution', event.target.value)}
@@ -2130,7 +2130,7 @@ function ProjectEditor({
                 value={state.enSummary}
               />
             </Field>
-            <Field label="Solution EN">
+            <Field label="Key achievements EN">
               <textarea
                 className="form-field min-h-40"
                 onChange={(event) =>
@@ -2331,7 +2331,7 @@ function ProjectEditor({
               value={state.problem}
             />
           </Field>
-          <Field label="Rozwiązanie">
+          <Field label="Najważniejsze osiągnięcia">
             <textarea
               className="form-field min-h-40"
               onChange={(event) => updateField('solution', event.target.value)}
