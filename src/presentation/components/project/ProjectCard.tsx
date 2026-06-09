@@ -52,9 +52,6 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
           </h3>
         </Link>
 
-        <p className="text-clamp-2 mt-2 text-sm leading-6 text-[color:var(--muted)]">
-          {localizedProject.subtitle}
-        </p>
         <p className="text-clamp-3 mt-3 text-sm leading-6 text-slate-300">
           {localizedProject.summary}
         </p>

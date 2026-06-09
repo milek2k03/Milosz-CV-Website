@@ -156,9 +156,6 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
         <h1 className="text-4xl font-semibold tracking-normal text-[color:var(--text)] sm:text-5xl">
           {localizedProject.title}
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-[color:var(--muted)]">
-          {localizedProject.subtitle}
-        </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
