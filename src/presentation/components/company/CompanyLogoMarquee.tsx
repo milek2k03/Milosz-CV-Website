@@ -19,6 +19,8 @@ function LogoGroup({ logos }: { logos: CompanyLogo[] }) {
             <img
               alt={company.name}
               className="h-full w-full object-contain p-3"
+              decoding="async"
+              fetchPriority="low"
               height="99"
               loading="lazy"
               src={company.imageUrl}

@@ -210,6 +210,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     const { error: uploadError } = await this.client.storage
       .from(PROJECT_MEDIA_BUCKET)
       .upload(storagePath, file, {
+        cacheControl: '31536000',
         contentType: file.type,
         upsert: false,
       })
@@ -292,6 +293,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     const { error: uploadError } = await this.client.storage
       .from(CV_BUCKET)
       .upload(storagePath, file, {
+        cacheControl: '31536000',
         contentType: file.type,
         upsert: false,
       })
@@ -340,6 +342,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     const { error: uploadError } = await this.client.storage
       .from(PROJECT_MEDIA_BUCKET)
       .upload(storagePath, file, {
+        cacheControl: '31536000',
         contentType: file.type,
         upsert: false,
       })

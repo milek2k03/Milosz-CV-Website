@@ -62,6 +62,7 @@ import {
 import { siteProfile } from '@/config/profile'
 import { Container } from '@/presentation/layout/Container'
 import { Seo } from '@/shared/seo/Seo'
+import { optimizeImageFile } from '@/shared/media/optimizeImageFile'
 import { cn } from '@/shared/utils/cn'
 
 const linkTypes: ProjectLinkType[] = [
@@ -1133,14 +1134,20 @@ function SiteContentEditor({
     }
 
     try {
-      const uploaded = await uploadCompanyLogo.mutateAsync(file)
+      const optimizedFile = await optimizeImageFile(file, {
+        forceAspectRatio: 16 / 9,
+        maxHeight: 720,
+        maxWidth: 1280,
+        quality: 0.82,
+      })
+      const uploaded = await uploadCompanyLogo.mutateAsync(optimizedFile)
       updateCompanyLogo(index, (logo) => ({
         ...logo,
         ...uploaded,
         name: logo.name.trim() || file.name,
         shortName: logo.shortName.trim() || logo.name || file.name,
       }))
-      toast.success('Zdjecie firmy wgrane. Kliknij Zapisz tresci.')
+      toast.success('Zdjecie firmy zoptymalizowane i wgrane. Kliknij Zapisz tresci.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -1864,9 +1871,18 @@ function ProjectEditor({
 
       for (const file of mediaFiles) {
         const type = file.type.startsWith('video/') ? 'video' : 'image'
+        const uploadFile =
+          type === 'image'
+            ? await optimizeImageFile(file, {
+                maxHeight: 1080,
+                maxWidth: 1920,
+                quality: 0.8,
+              })
+            : file
+
         await uploadProjectMedia.mutateAsync({
           projectId: savedProject.id,
-          file,
+          file: uploadFile,
           type,
           alt: state.mediaAlt,
         })

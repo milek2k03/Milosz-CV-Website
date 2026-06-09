@@ -158,12 +158,8 @@ export function HomePage() {
                       {content.projects.unityHeading}
                     </h3>
                     <div className="grid gap-6">
-                      {unityProjects.map((project, index) => (
-                        <ProjectCard
-                          key={project.id}
-                          project={project}
-                          priority={index === 0}
-                        />
+                      {unityProjects.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
                       ))}
                     </div>
                   </div>

@@ -35,8 +35,10 @@ export function ProjectMediaView({
       className="aspect-video w-full rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] object-cover"
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
+      height="1080"
       loading={priority ? 'eager' : 'lazy'}
       src={media.url}
+      width="1920"
     />
   )
 }
