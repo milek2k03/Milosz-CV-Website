@@ -23,7 +23,6 @@ import { Badge } from '@/presentation/components/Badge'
 import { Button } from '@/presentation/components/Button'
 import { CompanyLogoMarquee } from '@/presentation/components/company/CompanyLogoMarquee'
 import { ContactForm } from '@/presentation/components/contact/ContactForm'
-import { PortfolioAreaCards } from '@/presentation/components/portfolio/PortfolioAreaCards'
 import { ProjectCard } from '@/presentation/components/project/ProjectCard'
 import { SectionHeader } from '@/presentation/components/SectionHeader'
 import { Container } from '@/presentation/layout/Container'
@@ -96,7 +95,7 @@ export function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
                 icon={<ArrowRight className="size-4" />}
-                onClick={() => scrollToSection('obszary')}
+                onClick={() => scrollToSection('projekty')}
                 type="button"
                 variant="primary"
               >
@@ -134,8 +133,6 @@ export function HomePage() {
           </aside>
         </Container>
       </section>
-
-      <PortfolioAreaCards />
 
       <section id="projekty" className="border-b border-[color:var(--border)]">
         <Container className="py-12 sm:py-16">

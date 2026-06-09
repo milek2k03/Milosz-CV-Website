@@ -14,7 +14,6 @@ import { Container } from '@/presentation/layout/Container'
 import { cn } from '@/shared/utils/cn'
 
 const navItems = [
-  { id: 'obszary', labelKey: 'common.areas' },
   { id: 'projekty', labelKey: 'common.projects' },
   { id: 'firmy', labelKey: 'common.companies' },
   { id: 'stack', labelKey: 'common.stack' },
