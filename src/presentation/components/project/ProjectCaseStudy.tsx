@@ -93,10 +93,6 @@ const findTechnology = (project: Project, patterns: RegExp[]) =>
     patterns.some((pattern) => pattern.test(technology)),
   )
 
-const getProjectEngine = (project: Project) =>
-  findTechnology(project, [/unity/i, /unreal/i, /godot/i]) ??
-  (project.area === 'web' ? 'React / Vite' : 'Unity')
-
 const getProjectPlatform = (project: Project) => {
   const hasSteamLink = project.links.some((link) =>
     /store\.steampowered\.com|steam/i.test(link.url),
@@ -121,7 +117,6 @@ const getProjectLabels = (isEnglish: boolean) => ({
   about: isEnglish ? 'About the project' : 'O projekcie',
   achievements: isEnglish ? 'Key achievements' : 'Najważniejsze osiągnięcia',
   duration: isEnglish ? 'Time on project' : 'Czas pracy',
-  engine: isEnglish ? 'Engine' : 'Silnik',
   links: isEnglish ? 'Links' : 'Linki',
   role: isEnglish ? 'My role' : 'Moja rola',
   platform: isEnglish ? 'Platform' : 'Platforma',
@@ -140,7 +135,6 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
   const projectFacts = [
     { label: labels.year, value: String(localizedProject.year) },
     { label: labels.duration, value: localizedProject.duration ?? '-' },
-    { label: labels.engine, value: getProjectEngine(localizedProject) },
     { label: labels.platform, value: getProjectPlatform(localizedProject) },
   ]
 
