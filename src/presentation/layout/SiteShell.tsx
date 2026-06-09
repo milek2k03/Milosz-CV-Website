@@ -1,7 +1,7 @@
 import { BriefcaseBusiness, Code2, FileText, Mail } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   useCvDocument,
   useSiteContent,
@@ -30,6 +30,8 @@ export function SiteShell({ children }: PropsWithChildren) {
   const { data: cvDocument } = useCvDocument(currentLocale)
   const content = getLocalizedSiteContent(siteContent, currentLocale)
   const cvUrl = cvDocument?.url ?? siteProfile.cvUrl ?? '#kontakt'
+  const scrollTopLabel =
+    currentLocale === 'en' ? 'Scroll to top' : 'Przewiń na górę'
 
   const changeLanguage = (locale: SupportedLocale) => {
     void i18n.changeLanguage(locale)
@@ -52,14 +54,24 @@ export function SiteShell({ children }: PropsWithChildren) {
     scroll()
   }
 
+  const scrollToTop = () => {
+    window.history.replaceState(
+      null,
+      '',
+      `${location.pathname}${location.search}`,
+    )
+    window.scrollTo({ behavior: 'smooth', top: 0 })
+  }
+
   return (
     <div className="min-h-svh bg-[color:var(--background)] text-[color:var(--text)]">
       <header className="sticky top-0 z-40 border-b border-[color:var(--border)] bg-[rgba(11,17,32,0.86)] backdrop-blur">
         <Container className="flex h-16 items-center justify-between gap-6">
-          <Link
-            to="/"
-            className="focus-ring inline-flex items-center rounded-md"
-            aria-label={t('notFound.backHome')}
+          <button
+            type="button"
+            className="focus-ring inline-flex cursor-pointer items-center rounded-md border-0 bg-transparent p-0"
+            aria-label={scrollTopLabel}
+            onClick={scrollToTop}
           >
             <img
               alt={siteProfile.fullName}
@@ -69,7 +81,7 @@ export function SiteShell({ children }: PropsWithChildren) {
               src={brandLogoUrl}
               width="1040"
             />
-          </Link>
+          </button>
 
           <div className="flex items-center gap-3">
             <nav className="hidden items-center gap-1 text-sm text-[color:var(--muted)] md:flex">
