@@ -33,6 +33,7 @@ import {
   useUploadCompanyLogo,
   useUploadProjectMedia,
 } from '@/application/admin/useAdminProjects'
+import brandLogoUrl from '@/assets/brand/milosz-logo.png'
 import { defaultSiteContent } from '@/content/defaultSiteContent'
 import { hasSupabaseConfig } from '@/config/env'
 import type {
@@ -116,8 +117,8 @@ const projectStatusSchema = z.union([
 const projectAreaSchema = z.union([z.literal('unity'), z.literal('web')])
 
 const projectLinkSchema = z.object({
-  label: z.string().min(1),
-  url: z.string().min(1),
+  label: z.string().min(1, 'podaj etykietę linku'),
+  url: z.string().min(1, 'podaj adres linku'),
   type: z.union([
     z.literal('demo'),
     z.literal('repository'),
@@ -128,29 +129,32 @@ const projectLinkSchema = z.object({
 })
 
 const projectTranslationSchema = z.object({
-  title: z.string().min(2),
-  subtitle: z.string().min(2),
-  summary: z.string().min(20),
-  problem: z.string().min(20),
-  solution: z.string().min(20),
-  scope: z.array(z.string().min(1)).min(1),
+  title: z.string().min(2, 'minimum 2 znaki'),
+  subtitle: z.string().min(2, 'minimum 2 znaki'),
+  summary: z.string().min(20, 'minimum 20 znaków'),
+  problem: z.string().min(20, 'minimum 20 znaków'),
+  solution: z.string().min(20, 'minimum 20 znaków'),
+  scope: z.array(z.string().min(1)).min(1, 'dodaj przynajmniej jeden punkt'),
   role: z.string().optional(),
   duration: z.string().optional(),
 })
 
 const projectFormSchema = z.object({
   id: z.string().optional(),
-  slug: z.string().min(2).regex(/^[a-z0-9-]+$/),
-  title: z.string().min(2),
-  subtitle: z.string().min(2),
-  summary: z.string().min(20),
-  problem: z.string().min(20),
-  solution: z.string().min(20),
-  technologies: z.array(z.string().min(1)).min(1),
-  scope: z.array(z.string().min(1)).min(1),
-  role: z.string().min(2),
+  slug: z
+    .string()
+    .min(2, 'minimum 2 znaki')
+    .regex(/^[a-z0-9-]+$/, 'użyj tylko małych liter, cyfr i myślników'),
+  title: z.string().min(2, 'minimum 2 znaki'),
+  subtitle: z.string().min(2, 'minimum 2 znaki'),
+  summary: z.string().min(20, 'minimum 20 znaków'),
+  problem: z.string().min(20, 'minimum 20 znaków'),
+  solution: z.string().min(20, 'minimum 20 znaków'),
+  technologies: z.array(z.string().min(1)).min(1, 'dodaj przynajmniej jedną technologię'),
+  scope: z.array(z.string().min(1)).min(1, 'dodaj przynajmniej jeden punkt zakresu'),
+  role: z.string().min(2, 'minimum 2 znaki'),
   duration: z.string().optional(),
-  year: z.number().int().min(2000).max(2100),
+  year: z.number().int().min(2000, 'rok nie może być wcześniejszy niż 2000').max(2100, 'rok nie może być późniejszy niż 2100'),
   area: projectAreaSchema,
   status: projectStatusSchema,
   featured: z.boolean(),
@@ -284,6 +288,39 @@ const emptyFormState: ProjectFormState = {
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Wystąpił nieznany błąd.'
+
+const projectFieldLabels: Record<string, string> = {
+  links: 'Linki',
+  problem: 'Problem',
+  role: 'Rola',
+  scope: 'Zakres prac',
+  slug: 'Slug',
+  solution: 'Rozwiązanie',
+  subtitle: 'Podtytuł',
+  summary: 'Krótki opis',
+  technologies: 'Technologie',
+  title: 'Tytuł',
+  year: 'Rok',
+}
+
+const translationFieldLabels: Record<string, string> = {
+  problem: 'Problem EN',
+  scope: 'Zakres prac EN',
+  solution: 'Rozwiązanie EN',
+  subtitle: 'Podtytuł EN',
+  summary: 'Krótki opis EN',
+  title: 'Tytuł EN',
+}
+
+const formatValidationIssue = (
+  issue: { message: string; path: PropertyKey[] },
+  labels: Record<string, string>,
+) => {
+  const field = String(issue.path[0] ?? '')
+  const label = labels[field]
+
+  return label ? `${label}: ${issue.message}` : issue.message
+}
 
 const splitCommaList = (value: string) =>
   value
@@ -440,7 +477,12 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
   })
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? 'Formularz jest niepoprawny.')
+    const issue = parsed.error.issues[0]
+    throw new Error(
+      issue
+        ? formatValidationIssue(issue, projectFieldLabels)
+        : 'Formularz jest niepoprawny.',
+    )
   }
 
   const input: ProjectUpsertInput = parsed.data
@@ -458,9 +500,11 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
     })
 
     if (!translation.success) {
+      const issue = translation.error.issues[0]
       throw new Error(
-        translation.error.issues[0]?.message ??
-          'Tłumaczenie EN jest niepoprawne.',
+        issue
+          ? formatValidationIssue(issue, translationFieldLabels)
+          : 'Tłumaczenie EN jest niepoprawne.',
       )
     }
 
@@ -733,17 +777,17 @@ function AdminTopBar({
   return (
     <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <Link
-        className="focus-ring inline-flex h-20 w-32 items-center justify-center rounded-xl border border-[color:var(--border-strong)] bg-[rgba(26,34,51,0.92)] text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+        className="focus-ring inline-flex h-20 w-64 max-w-full items-center justify-center rounded-xl border border-[color:var(--border-strong)] bg-[rgba(26,34,51,0.92)] px-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
         to="/"
       >
-        <span>
-          <span className="block text-lg font-semibold tracking-normal text-white">
-            MC
-          </span>
-          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-normal text-[color:var(--muted)]">
-            Portfolio
-          </span>
-        </span>
+        <img
+          alt={siteProfile.fullName}
+          className="h-14 w-auto object-contain"
+          decoding="async"
+          height="250"
+          src={brandLogoUrl}
+          width="1040"
+        />
       </Link>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[color:var(--border)] bg-[rgba(17,24,39,0.72)] p-2">

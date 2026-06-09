@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, Code2, FileText, Mail, Terminal } from 'lucide-react'
+import { BriefcaseBusiness, Code2, FileText, Mail } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -6,6 +6,7 @@ import {
   useCvDocument,
   useSiteContent,
 } from '@/application/portfolio/usePortfolio'
+import brandLogoUrl from '@/assets/brand/milosz-logo.png'
 import { siteProfile } from '@/config/profile'
 import { getLocalizedSiteContent } from '@/content/defaultSiteContent'
 import { getSupportedLocale, type SupportedLocale } from '@/i18n/locales'
@@ -57,13 +58,17 @@ export function SiteShell({ children }: PropsWithChildren) {
         <Container className="flex h-16 items-center justify-between gap-6">
           <Link
             to="/"
-            className="focus-ring inline-flex items-center gap-3 rounded-md"
+            className="focus-ring inline-flex items-center rounded-md"
             aria-label={t('notFound.backHome')}
           >
-            <span className="grid size-8 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface)]">
-              <Terminal className="size-4 text-[color:var(--primary)]" />
-            </span>
-            <span className="text-sm font-semibold">{siteProfile.fullName}</span>
+            <img
+              alt={siteProfile.fullName}
+              className="h-9 w-auto max-w-[180px] object-contain sm:h-10 sm:max-w-[220px]"
+              decoding="async"
+              height="250"
+              src={brandLogoUrl}
+              width="1040"
+            />
           </Link>
 
           <div className="flex items-center gap-3">
