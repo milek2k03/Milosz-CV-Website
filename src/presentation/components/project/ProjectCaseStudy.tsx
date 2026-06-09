@@ -1,4 +1,5 @@
 import {
+  BriefcaseBusiness,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -20,7 +21,8 @@ interface ProjectCaseStudyProps {
   project: Project
 }
 
-const uniqueItems = (items: string[]) => Array.from(new Set(items))
+const uniqueItems = (items: string[]) =>
+  Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)))
 
 const splitTextItems = (value: string) =>
   value
@@ -28,6 +30,28 @@ const splitTextItems = (value: string) =>
     .split(/\n+|[.!?]\s+/)
     .map((item) => item.trim())
     .filter((item) => item.length > 8)
+
+const splitLongText = (value: string) => {
+  if (value.length <= 360) {
+    return [value]
+  }
+
+  const chunks: string[] = []
+  let rest = value
+
+  while (rest.length > 360 && chunks.length < 3) {
+    const cutIndex = rest.lastIndexOf(' ', 320)
+    const safeCutIndex = cutIndex > 160 ? cutIndex : 320
+    chunks.push(rest.slice(0, safeCutIndex).trim())
+    rest = rest.slice(safeCutIndex).trim()
+  }
+
+  if (rest) {
+    chunks.push(rest)
+  }
+
+  return chunks
+}
 
 const getAboutParagraphs = (project: Project) => {
   const paragraphs = project.summary
@@ -46,7 +70,15 @@ const getAboutParagraphs = (project: Project) => {
     return summaryItems.slice(0, 4)
   }
 
-  return [project.summary || project.subtitle].filter(Boolean).slice(0, 4)
+  return splitLongText(project.summary || project.subtitle).slice(0, 4)
+}
+
+const getResponsibilityItems = (project: Project) => {
+  if (project.scope.length > 0) {
+    return uniqueItems(project.scope).slice(0, 8)
+  }
+
+  return splitTextItems(project.problem).slice(0, 8)
 }
 
 const getAchievementItems = (project: Project) => {
@@ -90,6 +122,7 @@ const getProjectLabels = (isEnglish: boolean) => ({
   achievements: isEnglish ? 'Key achievements' : 'Najważniejsze osiągnięcia',
   duration: isEnglish ? 'Time on project' : 'Czas pracy',
   engine: isEnglish ? 'Engine' : 'Silnik',
+  links: isEnglish ? 'Links' : 'Linki',
   role: isEnglish ? 'My role' : 'Moja rola',
   platform: isEnglish ? 'Platform' : 'Platforma',
   whatIDid: isEnglish ? 'What I worked on' : 'Czym się zajmowałem',
@@ -102,9 +135,9 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
   const isEnglish = i18n.language.toLowerCase().startsWith('en')
   const labels = getProjectLabels(isEnglish)
   const aboutParagraphs = getAboutParagraphs(localizedProject)
+  const responsibilityItems = getResponsibilityItems(localizedProject)
   const achievementItems = getAchievementItems(localizedProject)
   const projectFacts = [
-    { label: labels.role, value: localizedProject.role },
     { label: labels.year, value: String(localizedProject.year) },
     { label: labels.duration, value: localizedProject.duration ?? '-' },
     { label: labels.engine, value: getProjectEngine(localizedProject) },
@@ -112,42 +145,71 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
   ]
 
   return (
-    <article className="py-12 sm:py-16">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div>
-          <div className="mb-5 flex flex-wrap gap-2">
-            <Badge tone="accent">{localizedProject.role}</Badge>
-            <Badge>{String(localizedProject.year)}</Badge>
-            {localizedProject.duration ? (
-              <Badge>{localizedProject.duration}</Badge>
-            ) : null}
-          </div>
-          <h1 className="max-w-4xl text-4xl font-semibold text-[color:var(--text)] sm:text-5xl">
-            {localizedProject.title}
-          </h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-[color:var(--muted)]">
-            {localizedProject.subtitle}
-          </p>
+    <article className="py-8 sm:py-12">
+      <header className="mb-8 max-w-4xl">
+        <div className="mb-5 flex flex-wrap gap-2">
+          <Badge tone="accent">{localizedProject.role}</Badge>
+          <Badge>{String(localizedProject.year)}</Badge>
+          {localizedProject.duration ? (
+            <Badge>{localizedProject.duration}</Badge>
+          ) : null}
+        </div>
+        <h1 className="text-4xl font-semibold tracking-normal text-[color:var(--text)] sm:text-5xl">
+          {localizedProject.title}
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-[color:var(--muted)]">
+          {localizedProject.subtitle}
+        </p>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="min-w-0">
+          {localizedProject.media.length > 0 ? (
+            <ProjectMediaGallery
+              isEnglish={isEnglish}
+              media={localizedProject.media}
+            />
+          ) : (
+            <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
+              {t('project.mediaPending')}
+            </div>
+          )}
         </div>
 
-        <aside className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
-          <div className="grid gap-4">
-            {projectFacts.map((item) => (
-              <div
-                className="grid gap-1 border-b border-[color:var(--border)] pb-3 last:border-b-0 last:pb-0"
-                key={item.label}
-              >
-                <span className="text-xs font-semibold uppercase text-[color:var(--muted)]">
-                  {item.label}
-                </span>
-                <span className="text-sm font-semibold text-[color:var(--text)]">
-                  {item.value}
-                </span>
+        <aside className="grid gap-4 lg:sticky lg:top-24 lg:row-span-2">
+          <section className="rounded-lg border border-cyan-300/30 bg-[rgba(56,189,248,0.08)] p-5">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-md border border-cyan-300/25 bg-[rgba(11,17,32,0.58)]">
+                <BriefcaseBusiness className="size-5 text-[color:var(--primary)]" />
               </div>
-            ))}
-          </div>
+              <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
+                {labels.role}
+              </p>
+            </div>
+            <h2 className="text-2xl font-semibold text-[color:var(--text)]">
+              {localizedProject.role}
+            </h2>
+          </section>
 
-          <div className="mt-5 border-t border-[color:var(--border)] pt-5">
+          <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+            <div className="grid gap-4">
+              {projectFacts.map((item) => (
+                <div
+                  className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] pb-3 last:border-b-0 last:pb-0"
+                  key={item.label}
+                >
+                  <span className="text-xs font-semibold uppercase text-[color:var(--muted)]">
+                    {item.label}
+                  </span>
+                  <span className="max-w-[170px] text-right text-sm font-semibold text-[color:var(--text)]">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
             <p className="mb-3 text-xs font-semibold uppercase text-[color:var(--primary)]">
               {t('project.technologies')}
             </p>
@@ -156,113 +218,90 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
                 <Badge key={technology}>{technology}</Badge>
               ))}
             </div>
-          </div>
+          </section>
+
+          {localizedProject.links.length > 0 ? (
+            <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+              <p className="mb-3 text-xs font-semibold uppercase text-[color:var(--primary)]">
+                {labels.links}
+              </p>
+              <div className="grid gap-2">
+                {localizedProject.links.map((link) => (
+                  <ButtonLink
+                    className="w-full"
+                    href={link.url}
+                    icon={<ExternalLink className="size-4" />}
+                    key={`${link.label}-${link.url}`}
+                    rel={link.url.startsWith('http') ? 'noreferrer' : undefined}
+                    target={link.url.startsWith('http') ? '_blank' : undefined}
+                  >
+                    {link.label}
+                  </ButtonLink>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </aside>
-      </div>
 
-      <div className="mt-10">
-        {localizedProject.media.length > 0 ? (
-          <ProjectMediaGallery
-            isEnglish={isEnglish}
-            media={localizedProject.media}
-          />
-        ) : (
-          <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
-            {t('project.mediaPending')}
-          </div>
-        )}
-      </div>
-
-      <section className="mt-10 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
-            <Layers className="size-5 text-[color:var(--primary)]" />
-          </div>
-          <h2 className="text-2xl font-semibold">{labels.about}</h2>
-        </div>
-        <div className="grid max-w-4xl gap-4 text-sm leading-7 text-slate-300 sm:text-base">
-          {aboutParagraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-      </section>
-
-      <div className="mt-8 grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <section className="rounded-lg border border-cyan-300/25 bg-[rgba(56,189,248,0.07)] p-6">
-          <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
-            {labels.role}
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-[color:var(--text)]">
-            {localizedProject.role}
-          </h2>
-          {localizedProject.duration ? (
-            <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-              {localizedProject.duration} · {localizedProject.year}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm leading-6 text-[color:var(--muted)]">
-              {localizedProject.year}
-            </p>
-          )}
-        </section>
-
-        <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
-              <Monitor className="size-5 text-[color:var(--primary)]" />
+        <div className="grid min-w-0 gap-6 lg:col-start-1">
+          <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+                <Layers className="size-5 text-[color:var(--primary)]" />
+              </div>
+              <h2 className="text-2xl font-semibold">{labels.about}</h2>
             </div>
-            <h2 className="text-2xl font-semibold">{labels.whatIDid}</h2>
-          </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {localizedProject.scope.map((item) => (
-              <li
-                className="flex gap-3 rounded-md border border-[color:var(--border)] bg-[color:var(--background)] p-4 text-sm leading-6 text-slate-300"
-                key={item}
-              >
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[color:var(--primary)]" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-
-      {achievementItems.length > 0 ? (
-        <section className="mt-8 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
-              <Trophy className="size-5 text-amber-300" />
+            <div className="grid gap-4 text-base leading-7 text-slate-300">
+              {aboutParagraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             </div>
-            <h2 className="text-2xl font-semibold">{labels.achievements}</h2>
-          </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {achievementItems.map((item) => (
-              <li
-                className="rounded-md border border-amber-300/18 bg-amber-300/[0.055] p-4 text-sm font-medium leading-6 text-slate-200"
-                key={item}
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+          </section>
 
-      {localizedProject.links.length > 0 ? (
-        <div className="mt-8 flex flex-wrap gap-3">
-          {localizedProject.links.map((link) => (
-            <ButtonLink
-              key={`${link.label}-${link.url}`}
-              href={link.url}
-              icon={<ExternalLink className="size-4" />}
-              rel={link.url.startsWith('http') ? 'noreferrer' : undefined}
-              target={link.url.startsWith('http') ? '_blank' : undefined}
-            >
-              {link.label}
-            </ButtonLink>
-          ))}
+          <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+                <Monitor className="size-5 text-[color:var(--primary)]" />
+              </div>
+              <h2 className="text-2xl font-semibold">{labels.whatIDid}</h2>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {responsibilityItems.map((item) => (
+                <li
+                  className="flex gap-3 rounded-md border border-[color:var(--border)] bg-[color:var(--background)] p-4 text-sm leading-6 text-slate-300"
+                  key={item}
+                >
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[color:var(--primary)]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {achievementItems.length > 0 ? (
+            <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="grid size-10 place-items-center rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+                  <Trophy className="size-5 text-amber-300" />
+                </div>
+                <h2 className="text-2xl font-semibold">
+                  {labels.achievements}
+                </h2>
+              </div>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {achievementItems.map((item) => (
+                  <li
+                    className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm font-medium leading-6 text-slate-200"
+                    key={item}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </article>
   )
 }
