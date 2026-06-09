@@ -14,7 +14,7 @@ export function ProjectMediaView({
     return (
       <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--surface)]">
         <video
-          className="aspect-video w-full object-cover"
+          className="aspect-video w-full object-contain"
           controls
           preload="metadata"
           poster={media.posterUrl}
@@ -32,7 +32,7 @@ export function ProjectMediaView({
   return (
     <img
       alt={media.alt}
-      className="aspect-video w-full rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] object-cover"
+      className="aspect-video w-full rounded-md border border-[color:var(--border)] bg-[color:var(--surface)] object-contain"
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
       height="1080"
