@@ -306,7 +306,6 @@ const projectFieldLabels: Record<string, string> = {
 }
 
 const translationFieldLabels: Record<string, string> = {
-  problem: 'Problem EN',
   scope: 'Zakres prac EN',
   solution: 'Rozwiązanie EN',
   subtitle: 'Podtytuł EN',
@@ -439,6 +438,9 @@ const hasTranslationDraft = (state: ProjectFormState) =>
     state.enDuration,
   ].some((value) => value.trim().length > 0)
 
+const getFallbackProjectText = (...values: string[]) =>
+  values.map((value) => value.trim()).find(Boolean) ?? ''
+
 const createSlug = (value: string) =>
   value
     .normalize('NFD')
@@ -489,7 +491,7 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
     title: state.title,
     subtitle: state.subtitle,
     summary: state.summary,
-    problem: state.problem,
+    problem: getFallbackProjectText(state.problem, state.summary),
     solution: state.solution,
     technologies: splitCommaList(state.technologiesText),
     scope: splitLineList(state.scopeText),
@@ -518,7 +520,7 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
       title: state.enTitle,
       subtitle: state.enSubtitle,
       summary: state.enSummary,
-      problem: state.enProblem,
+      problem: getFallbackProjectText(state.enProblem, state.enSummary),
       solution: state.enSolution,
       scope: splitLineList(state.enScopeText),
       role: state.enRole.trim() || undefined,
@@ -2066,14 +2068,6 @@ function ProjectEditor({
                 value={state.summary}
               />
             </Field>
-            <Field label="Problem PL">
-              <textarea
-                className="form-field min-h-40"
-                onChange={(event) => updateField('problem', event.target.value)}
-                required
-                value={state.problem}
-              />
-            </Field>
             <Field label="Rozwiazanie PL">
               <textarea
                 className="form-field min-h-40"
@@ -2134,15 +2128,6 @@ function ProjectEditor({
                   updateField('enSummary', event.target.value)
                 }
                 value={state.enSummary}
-              />
-            </Field>
-            <Field label="Problem EN">
-              <textarea
-                className="form-field min-h-40"
-                onChange={(event) =>
-                  updateField('enProblem', event.target.value)
-                }
-                value={state.enProblem}
               />
             </Field>
             <Field label="Solution EN">
