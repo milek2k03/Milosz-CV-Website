@@ -69,11 +69,13 @@ export class FallbackPortfolioRepository implements PortfolioRepository {
     file: File,
     type: ProjectMediaType,
     alt?: string,
+    posterFile?: File | null,
   ): Promise<ProjectMedia> {
     void projectId
     void file
     void type
     void alt
+    void posterFile
     throw new Error('Upload mediow wymaga konfiguracji Supabase.')
   }
 

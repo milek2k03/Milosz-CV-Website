@@ -64,10 +64,14 @@ create table if not exists public.project_media (
   url text not null,
   alt text not null,
   poster_url text,
+  poster_storage_path text,
   storage_path text,
   sort_order integer not null default 100,
   created_at timestamptz not null default now()
 );
+
+alter table public.project_media
+add column if not exists poster_storage_path text;
 
 create table if not exists public.project_translations (
   id uuid primary key default gen_random_uuid(),

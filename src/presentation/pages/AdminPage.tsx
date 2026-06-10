@@ -72,6 +72,7 @@ import {
 import { siteProfile } from '@/config/profile'
 import { Container } from '@/presentation/layout/Container'
 import { Seo } from '@/shared/seo/Seo'
+import { createVideoPosterFile } from '@/shared/media/createVideoPosterFile'
 import { optimizeImageFile } from '@/shared/media/optimizeImageFile'
 import { cn } from '@/shared/utils/cn'
 
@@ -2143,12 +2144,21 @@ function ProjectEditor({
                 quality: 0.8,
               })
             : file
+        const posterFile =
+          type === 'video'
+            ? await createVideoPosterFile(file, {
+                maxHeight: 720,
+                maxWidth: 1280,
+                quality: 0.72,
+              })
+            : null
 
         await uploadProjectMedia.mutateAsync({
           projectId: savedProject.id,
           file: uploadFile,
           type,
           alt: state.mediaAlt,
+          posterFile,
         })
       }
 
@@ -2781,6 +2791,7 @@ function ProjectEditor({
                       className="aspect-video w-full object-cover"
                       controls
                       muted
+                      poster={media.posterUrl}
                       preload="metadata"
                       src={media.url}
                     />

@@ -28,7 +28,11 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
       >
         <div className="project-card-image overflow-hidden rounded-md bg-[color:var(--card)]">
           {cover ? (
-            <ProjectMediaView media={cover} priority={priority} />
+            <ProjectMediaView
+              media={cover}
+              priority={priority}
+              thumbnailOnly
+            />
           ) : (
             <div className="grid h-full place-items-center text-sm text-[color:var(--muted)]">
               Media projektu

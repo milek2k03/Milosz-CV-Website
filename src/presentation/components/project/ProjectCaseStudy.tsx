@@ -7,6 +7,7 @@ import {
   Images,
   Layers,
   Monitor,
+  Play,
   Trophy,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -335,7 +336,12 @@ function ProjectMediaGallery({
   return (
     <section className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-3 sm:p-4">
       <div className="relative overflow-hidden rounded-md bg-[color:var(--card)]">
-        <ProjectMediaView media={selectedMedia} priority />
+        <ProjectMediaView
+          autoPlay={selectedMedia.type === 'video'}
+          key={selectedMedia.id}
+          media={selectedMedia}
+          priority
+        />
 
         <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
           <Images className="size-3.5" />
@@ -396,6 +402,12 @@ function ProjectMediaGallery({
                     Video
                   </span>
                 )}
+                {item.type === 'video' ? (
+                  <span className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/20 bg-black/50 px-2 py-1 text-[10px] font-semibold uppercase tracking-normal text-white">
+                    <Play className="size-3" />
+                    Video
+                  </span>
+                ) : null}
               </button>
             )
           })}

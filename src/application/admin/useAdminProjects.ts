@@ -52,12 +52,14 @@ export function useUploadProjectMedia() {
       file: File
       type: ProjectMediaType
       alt?: string
+      posterFile?: File | null
     }) =>
       repository.uploadProjectMedia(
         input.projectId,
         input.file,
         input.type,
         input.alt,
+        input.posterFile,
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })

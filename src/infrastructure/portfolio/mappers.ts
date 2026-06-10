@@ -64,6 +64,7 @@ export const mapMediaRow = (row: MediaRow): ProjectMedia => ({
   url: row.url,
   alt: row.alt,
   posterUrl: row.poster_url ?? undefined,
+  posterStoragePath: row.poster_storage_path ?? undefined,
   storagePath: row.storage_path ?? undefined,
   sortOrder: row.sort_order,
 })

@@ -295,6 +295,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     file: File,
     type: ProjectMediaType,
     alt?: string,
+    posterFile?: File | null,
   ): Promise<ProjectMedia> {
     const sortOrder = await this.getNextProjectMediaSortOrder(projectId)
     const storagePath = `${projectId}/${crypto.randomUUID()}.${getExtension(file.name)}`
@@ -313,6 +314,29 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     const { data: publicUrlData } = this.client.storage
       .from(PROJECT_MEDIA_BUCKET)
       .getPublicUrl(storagePath)
+    let posterUrl: string | null = null
+    let posterStoragePath: string | null = null
+
+    if (posterFile) {
+      posterStoragePath = `${projectId}/posters/${crypto.randomUUID()}.${getExtension(posterFile.name)}`
+      const { error: posterUploadError } = await this.client.storage
+        .from(PROJECT_MEDIA_BUCKET)
+        .upload(posterStoragePath, posterFile, {
+          cacheControl: '31536000',
+          contentType: posterFile.type,
+          upsert: false,
+        })
+
+      if (posterUploadError) {
+        await this.client.storage.from(PROJECT_MEDIA_BUCKET).remove([storagePath])
+        throw new Error(posterUploadError.message)
+      }
+
+      const { data: posterPublicUrlData } = this.client.storage
+        .from(PROJECT_MEDIA_BUCKET)
+        .getPublicUrl(posterStoragePath)
+      posterUrl = posterPublicUrlData.publicUrl
+    }
 
     const { data, error } = await this.client
       .from('project_media')
@@ -321,6 +345,8 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
         type,
         url: publicUrlData.publicUrl,
         alt: alt?.trim() || sanitizeFileName(file.name),
+        poster_url: posterUrl,
+        poster_storage_path: posterStoragePath,
         storage_path: storagePath,
         sort_order: sortOrder,
       })
@@ -355,10 +381,14 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   }
 
   async removeProjectMedia(media: ProjectMedia): Promise<void> {
-    if (media.storagePath) {
+    const storagePaths = [media.storagePath, media.posterStoragePath].filter(
+      (path): path is string => Boolean(path),
+    )
+
+    if (storagePaths.length > 0) {
       const { error: storageError } = await this.client.storage
         .from(PROJECT_MEDIA_BUCKET)
-        .remove([media.storagePath])
+        .remove(storagePaths)
 
       if (storageError) {
         throw new Error(storageError.message)

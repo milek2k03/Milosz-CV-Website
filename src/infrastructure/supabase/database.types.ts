@@ -55,6 +55,7 @@ type ProjectMediaRow = {
   url: string
   alt: string
   poster_url: string | null
+  poster_storage_path: string | null
   storage_path: string | null
   sort_order: number
   created_at: string
@@ -67,6 +68,7 @@ type ProjectMediaInsert = {
   url: string
   alt: string
   poster_url?: string | null
+  poster_storage_path?: string | null
   storage_path?: string | null
   sort_order?: number
 }

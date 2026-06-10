@@ -22,6 +22,7 @@ export interface ProjectMedia {
   url: string
   alt: string
   posterUrl?: string
+  posterStoragePath?: string
   storagePath?: string
   sortOrder: number
 }

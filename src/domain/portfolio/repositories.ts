@@ -25,6 +25,7 @@ export interface PortfolioRepository {
     file: File,
     type: ProjectMediaType,
     alt?: string,
+    posterFile?: File | null,
   ): Promise<ProjectMedia>
   updateProjectMediaOrder(
     projectId: string,
