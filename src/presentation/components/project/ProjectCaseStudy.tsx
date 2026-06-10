@@ -25,10 +25,8 @@ interface ProjectCaseStudyProps {
   project: Project
 }
 
-const cleanListItem = (item: string) => item.replace(/\s+/g, ' ').trim()
-
 const uniqueItems = (items: string[]) =>
-  Array.from(new Set(items.map(cleanListItem).filter(Boolean)))
+  Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)))
 
 const normalizeListItem = (item: string) =>
   item
@@ -41,7 +39,7 @@ const splitTextItems = (value: string) =>
   value
     .replace(/\r/g, '')
     .split(/\n+|[.!?]\s+/)
-    .map(cleanListItem)
+    .map((item) => item.trim())
     .filter((item) => item.length > 8)
 
 const splitLongText = (value: string) => {
@@ -267,7 +265,7 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
               </div>
               <h2 className="text-2xl font-semibold">{labels.whatIDid}</h2>
             </div>
-            <ul className="grid gap-3">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {responsibilityItems.map((item) => (
                 <li
                   className="flex gap-3 rounded-md border border-[color:var(--border)] bg-[color:var(--background)] p-4 text-sm leading-6 text-slate-300"
@@ -290,7 +288,7 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
                   {labels.achievements}
                 </h2>
               </div>
-              <ul className="grid gap-3">
+              <ul className="grid gap-3 sm:grid-cols-2">
                 {achievementItems.map((item) => (
                   <li
                     className="rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm font-medium leading-6 text-slate-200"
