@@ -108,7 +108,7 @@ export function HomePage() {
       />
 
       <section className="border-b border-[color:var(--border)]">
-        <Container className="grid gap-10 py-14 md:grid-cols-[minmax(0,1fr)_360px] md:py-16">
+        <Container className="grid items-start gap-10 py-14 md:grid-cols-[minmax(0,1fr)_360px] md:py-16">
           <div className="max-w-3xl">
             <div className="mb-5 flex flex-wrap gap-2">
               {siteProfile.roles.map((role) => (
@@ -149,7 +149,7 @@ export function HomePage() {
             </div>
           </div>
 
-          <aside className="technical-grid rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+          <aside className="technical-grid self-start rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
             <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
               {content.currentScope}
             </p>
