@@ -4,7 +4,7 @@ export const resources = {
       common: {
         admin: 'Admin',
         areas: 'Obszary',
-        caseStudy: 'Zobacz case study',
+        caseStudy: 'Szczegóły projektu',
         companies: 'Firmy',
         contact: 'Kontakt',
         cv: 'CV',
@@ -151,7 +151,7 @@ export const resources = {
       common: {
         admin: 'Admin',
         areas: 'Areas',
-        caseStudy: 'View case study',
+        caseStudy: 'Project details',
         companies: 'Companies',
         contact: 'Contact',
         cv: 'CV',
