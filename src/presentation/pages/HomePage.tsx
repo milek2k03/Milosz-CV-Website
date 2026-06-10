@@ -32,7 +32,8 @@ import { createPersonSchema } from '@/shared/seo/schema'
 
 export function HomePage() {
   const { i18n, t } = useTranslation()
-  const [showAllProjects, setShowAllProjects] = useState(false)
+  const [showAllUnityProjects, setShowAllUnityProjects] = useState(false)
+  const [showAllWebProjects, setShowAllWebProjects] = useState(false)
   const { data: projects = [], isLoading } = usePublishedProjects()
   const { data: siteContent } = useSiteContent()
   const currentLocale = getSupportedLocale(i18n.language)
@@ -44,12 +45,21 @@ export function HomePage() {
   const localizedProjects = projects.map((project) =>
     localizeProject(project, i18n.language),
   )
-  const visibleProjects = showAllProjects ? projects : projects.slice(0, 3)
-  const unityProjects = visibleProjects.filter(
+  const featuredProjects = projects.filter((project) => project.featured)
+  const unityFeaturedProjects = featuredProjects.filter(
     (project) => project.area === 'unity',
   )
-  const webProjects = visibleProjects.filter((project) => project.area === 'web')
-  const hasMoreProjects = projects.length > 3
+  const webFeaturedProjects = featuredProjects.filter(
+    (project) => project.area === 'web',
+  )
+  const unityProjects = showAllUnityProjects
+    ? unityFeaturedProjects
+    : unityFeaturedProjects.slice(0, 3)
+  const webProjects = showAllWebProjects
+    ? webFeaturedProjects
+    : webFeaturedProjects.slice(0, 3)
+  const hasMoreUnityProjects = unityFeaturedProjects.length > 3
+  const hasMoreWebProjects = webFeaturedProjects.length > 3
   const scrollToSection = (sectionId: string) => {
     document
       .getElementById(sectionId)
@@ -159,6 +169,29 @@ export function HomePage() {
                         <ProjectCard key={project.id} project={project} />
                       ))}
                     </div>
+                    {hasMoreUnityProjects ? (
+                      <div className="flex justify-center pt-1">
+                        <Button
+                          icon={
+                            showAllUnityProjects ? (
+                              <ChevronUp className="size-4" />
+                            ) : (
+                              <ChevronDown className="size-4" />
+                            )
+                          }
+                          onClick={() =>
+                            setShowAllUnityProjects(
+                              (currentValue) => !currentValue,
+                            )
+                          }
+                          type="button"
+                        >
+                          {showAllUnityProjects
+                            ? content.projects.showLess
+                            : content.projects.showMore}
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -172,28 +205,29 @@ export function HomePage() {
                         <ProjectCard key={project.id} project={project} />
                       ))}
                     </div>
-                  </div>
-                ) : null}
-
-                {hasMoreProjects ? (
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      icon={
-                        showAllProjects ? (
-                          <ChevronUp className="size-4" />
-                        ) : (
-                          <ChevronDown className="size-4" />
-                        )
-                      }
-                      onClick={() =>
-                        setShowAllProjects((currentValue) => !currentValue)
-                      }
-                      type="button"
-                    >
-                      {showAllProjects
-                        ? content.projects.showLess
-                        : content.projects.showMore}
-                    </Button>
+                    {hasMoreWebProjects ? (
+                      <div className="flex justify-center pt-1">
+                        <Button
+                          icon={
+                            showAllWebProjects ? (
+                              <ChevronUp className="size-4" />
+                            ) : (
+                              <ChevronDown className="size-4" />
+                            )
+                          }
+                          onClick={() =>
+                            setShowAllWebProjects(
+                              (currentValue) => !currentValue,
+                            )
+                          }
+                          type="button"
+                        >
+                          {showAllWebProjects
+                            ? content.projects.showLess
+                            : content.projects.showMore}
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </>
