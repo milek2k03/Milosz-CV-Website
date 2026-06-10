@@ -1,10 +1,9 @@
 import {
-  ArrowDown,
-  ArrowUp,
   BarChart3,
   Eye,
   FileText,
   FolderKanban,
+  GripVertical,
   Home,
   ImageIcon,
   ImagePlus,
@@ -20,7 +19,7 @@ import {
   UserRound,
   Users,
 } from 'lucide-react'
-import type { FormEvent, ReactNode } from 'react'
+import type { DragEvent, FormEvent, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -287,7 +286,7 @@ const emptyFormState: ProjectFormState = {
   year: String(new Date().getFullYear()),
   area: 'unity',
   status: 'draft',
-  featured: true,
+  featured: false,
   linksText: '',
   enTitle: '',
   enSubtitle: '',
@@ -302,6 +301,32 @@ const emptyFormState: ProjectFormState = {
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Wystąpił nieznany błąd.'
+
+const reorderItems = <Item,>(
+  items: Item[],
+  fromIndex: number,
+  toIndex: number,
+) => {
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex === toIndex ||
+    fromIndex >= items.length ||
+    toIndex >= items.length
+  ) {
+    return items
+  }
+
+  const nextItems = [...items]
+  const [movedItem] = nextItems.splice(fromIndex, 1)
+
+  if (!movedItem) {
+    return items
+  }
+
+  nextItems.splice(toIndex, 0, movedItem)
+  return nextItems
+}
 
 const projectFieldLabels: Record<string, string> = {
   links: 'Linki',
@@ -1216,48 +1241,36 @@ function ProjectsManager({
   const unityProjects = projects.filter((project) => project.area === 'unity')
   const webProjects = projects.filter((project) => project.area === 'web')
 
-  const handleMoveProject = async (
+  const handleReorderProjects = async (
     area: ProjectArea,
-    projectId: string,
-    direction: 'up' | 'down',
+    orderedProjects: Project[],
   ) => {
-    const areaProjects = area === 'unity' ? unityProjects : webProjects
-    const currentIndex = areaProjects.findIndex(
-      (project) => project.id === projectId,
-    )
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-
-    if (
-      currentIndex < 0 ||
-      targetIndex < 0 ||
-      targetIndex >= areaProjects.length
-    ) {
+    if (orderedProjects.length === 0) {
       return
     }
-
-    const nextProjects = [...areaProjects]
-    const currentProject = nextProjects[currentIndex]
-    const targetProject = nextProjects[targetIndex]
-
-    if (!currentProject || !targetProject) {
-      return
-    }
-
-    nextProjects[currentIndex] = targetProject
-    nextProjects[targetIndex] = currentProject
 
     try {
       await updateProjectOrder.mutateAsync({
         area,
-        orderedProjectIds: nextProjects.map((project) => project.id),
+        orderedProjectIds: orderedProjects.map((project) => project.id),
       })
       toast.success('Kolejnosc projektow zapisana.')
-    } catch (moveError) {
-      toast.error(getErrorMessage(moveError))
+    } catch (error) {
+      toast.error(getErrorMessage(error))
     }
   }
 
   const handleToggleFeatured = async (project: Project) => {
+    const areaProjects = project.area === 'unity' ? unityProjects : webProjects
+    const featuredCount = areaProjects.filter((item) => item.featured).length
+
+    if (!project.featured && featuredCount >= 3) {
+      toast.error(
+        'Mozesz wyroznic maksymalnie 3 projekty w tej sekcji. Najpierw odznacz inny projekt.',
+      )
+      return
+    }
+
     try {
       await updateProjectFeatured.mutateAsync({
         featured: !project.featured,
@@ -1309,7 +1322,7 @@ function ProjectsManager({
               isMutating={
                 updateProjectOrder.isPending || updateProjectFeatured.isPending
               }
-              onMoveProject={handleMoveProject}
+              onReorderProjects={handleReorderProjects}
               onSelectProject={onSelectProject}
               onToggleFeatured={handleToggleFeatured}
               projects={unityProjects}
@@ -1321,7 +1334,7 @@ function ProjectsManager({
               isMutating={
                 updateProjectOrder.isPending || updateProjectFeatured.isPending
               }
-              onMoveProject={handleMoveProject}
+              onReorderProjects={handleReorderProjects}
               onSelectProject={onSelectProject}
               onToggleFeatured={handleToggleFeatured}
               projects={webProjects}
@@ -1355,7 +1368,7 @@ function ProjectsManager({
 function ProjectListSection({
   area,
   isMutating,
-  onMoveProject,
+  onReorderProjects,
   onSelectProject,
   onToggleFeatured,
   projects,
@@ -1364,18 +1377,64 @@ function ProjectListSection({
 }: {
   area: ProjectArea
   isMutating: boolean
-  onMoveProject(
-    area: ProjectArea,
-    projectId: string,
-    direction: 'up' | 'down',
-  ): Promise<void>
+  onReorderProjects(area: ProjectArea, orderedProjects: Project[]): Promise<void>
   onSelectProject(projectId: string): void
   onToggleFeatured(project: Project): Promise<void>
   projects: Project[]
   selectedId: string | null
   title: string
 }) {
+  const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null)
   const featuredCount = projects.filter((project) => project.featured).length
+  const canAddFeatured = featuredCount < 3
+
+  const handleDragStart = (
+    event: DragEvent<HTMLElement>,
+    projectId: string,
+  ) => {
+    if (isMutating) {
+      event.preventDefault()
+      return
+    }
+
+    setDraggingProjectId(projectId)
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', projectId)
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLElement>) => {
+    if (!draggingProjectId || isMutating) {
+      return
+    }
+
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = async (
+    event: DragEvent<HTMLElement>,
+    targetProjectId: string,
+  ) => {
+    event.preventDefault()
+
+    const sourceProjectId =
+      draggingProjectId || event.dataTransfer.getData('text/plain')
+    const sourceIndex = projects.findIndex(
+      (project) => project.id === sourceProjectId,
+    )
+    const targetIndex = projects.findIndex(
+      (project) => project.id === targetProjectId,
+    )
+    const nextProjects = reorderItems(projects, sourceIndex, targetIndex)
+
+    setDraggingProjectId(null)
+
+    if (nextProjects === projects) {
+      return
+    }
+
+    await onReorderProjects(area, nextProjects)
+  }
 
   return (
     <div className="grid gap-2">
@@ -1389,20 +1448,32 @@ function ProjectListSection({
       </div>
 
       {projects.length > 0 ? (
-        projects.map((project, index) => {
+        projects.map((project) => {
           const isSelected = selectedId === project.id
 
           return (
             <article
               className={cn(
                 'rounded-md border p-2 transition-colors',
+                draggingProjectId === project.id && 'opacity-50',
                 isSelected
                   ? 'border-[#d8b982]/70 bg-[#d8b982]/12'
                   : 'border-[color:var(--border)] hover:border-[#d8b982]/50',
               )}
+              draggable={!isMutating}
               key={project.id}
+              onDragEnd={() => setDraggingProjectId(null)}
+              onDragOver={handleDragOver}
+              onDragStart={(event) => handleDragStart(event, project.id)}
+              onDrop={(event) => void handleDrop(event, project.id)}
             >
               <div className="flex items-start gap-2">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 grid size-8 shrink-0 cursor-grab place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] active:cursor-grabbing"
+                >
+                  <GripVertical className="size-4" />
+                </span>
                 <button
                   aria-label={
                     project.featured
@@ -1410,13 +1481,20 @@ function ProjectListSection({
                       : 'Dodaj do wyroznionych'
                   }
                   className={cn(
-                    'focus-ring mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition-colors',
+                    'focus-ring mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-45',
                     project.featured
                       ? 'border-[#d8b982]/70 bg-[#d8b982]/15 text-[#d8b982]'
                       : 'border-[color:var(--border)] text-[color:var(--muted)] hover:text-[#d8b982]',
                   )}
-                  disabled={isMutating}
+                  disabled={isMutating || (!project.featured && !canAddFeatured)}
                   onClick={() => void onToggleFeatured(project)}
+                  title={
+                    project.featured
+                      ? 'Usun gwiazdke'
+                      : canAddFeatured
+                        ? 'Wyroznij projekt na stronie glownej'
+                        : 'Limit 3 wyroznionych projektow w tej sekcji'
+                  }
                   type="button"
                 >
                   <Star
@@ -1437,31 +1515,6 @@ function ProjectListSection({
                     {project.status} / {project.year}
                   </span>
                 </button>
-
-                <div className="flex shrink-0 flex-col gap-1">
-                  <button
-                    aria-label="Przesun projekt wyzej"
-                    className="focus-ring grid size-7 place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] transition-colors hover:text-white disabled:opacity-40"
-                    disabled={index === 0 || isMutating}
-                    onClick={() =>
-                      void onMoveProject(area, project.id, 'up')
-                    }
-                    type="button"
-                  >
-                    <ArrowUp className="size-3.5" />
-                  </button>
-                  <button
-                    aria-label="Przesun projekt nizej"
-                    className="focus-ring grid size-7 place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] transition-colors hover:text-white disabled:opacity-40"
-                    disabled={index === projects.length - 1 || isMutating}
-                    onClick={() =>
-                      void onMoveProject(area, project.id, 'down')
-                    }
-                    type="button"
-                  >
-                    <ArrowDown className="size-3.5" />
-                  </button>
-                </div>
               </div>
             </article>
           )
@@ -2292,6 +2345,7 @@ function ProjectEditor({
     formStateFromProject(project),
   )
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
+  const [draggingMediaId, setDraggingMediaId] = useState<string | null>(null)
   const saveProject = useSaveProject()
   const uploadProjectMedia = useUploadProjectMedia()
   const removeProjectMedia = useRemoveProjectMedia()
@@ -2398,44 +2452,54 @@ function ProjectEditor({
     }
   }
 
-  const handleMoveMedia = async (
+  const handleMediaDragStart = (
+    event: DragEvent<HTMLDivElement>,
     mediaId: string,
-    direction: 'up' | 'down',
   ) => {
-    const currentIndex = projectMedia.findIndex((media) => media.id === mediaId)
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-
-    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= projectMedia.length) {
+    if (updateProjectMediaOrder.isPending) {
+      event.preventDefault()
       return
     }
 
-    const nextMediaOrder = [...projectMedia]
-    const currentMedia = nextMediaOrder[currentIndex]
-    const targetMedia = nextMediaOrder[targetIndex]
-
-    if (!currentMedia || !targetMedia) {
-      return
-    }
-
-    nextMediaOrder[currentIndex] = targetMedia
-    nextMediaOrder[targetIndex] = currentMedia
-
-    await updateMediaOrder(nextMediaOrder, 'Kolejnosc mediow zapisana.')
+    setDraggingMediaId(mediaId)
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', mediaId)
   }
 
-  const handleSetCoverMedia = async (mediaId: string) => {
-    const selectedMedia = projectMedia.find((media) => media.id === mediaId)
+  const handleMediaDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (!draggingMediaId || updateProjectMediaOrder.isPending) {
+      return
+    }
 
-    if (!selectedMedia || selectedMedia.type !== 'image') {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleMediaDrop = async (
+    event: DragEvent<HTMLDivElement>,
+    targetMediaId: string,
+  ) => {
+    event.preventDefault()
+
+    const sourceMediaId =
+      draggingMediaId || event.dataTransfer.getData('text/plain')
+    const sourceIndex = projectMedia.findIndex(
+      (media) => media.id === sourceMediaId,
+    )
+    const targetIndex = projectMedia.findIndex(
+      (media) => media.id === targetMediaId,
+    )
+    const nextMediaOrder = reorderItems(projectMedia, sourceIndex, targetIndex)
+
+    setDraggingMediaId(null)
+
+    if (nextMediaOrder === projectMedia) {
       return
     }
 
     await updateMediaOrder(
-      [
-        selectedMedia,
-        ...projectMedia.filter((media) => media.id !== selectedMedia.id),
-      ],
-      'Miniaturka projektu ustawiona.',
+      nextMediaOrder,
+      'Kolejnosc mediow zapisana. Pierwsze media sa miniaturka projektu.',
     )
   }
 
@@ -2654,15 +2718,6 @@ function ProjectEditor({
               value={state.technologiesText}
             />
           </Field>
-          <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[color:var(--border)] px-3 text-sm text-[color:var(--muted)]">
-            <input
-              checked={state.featured}
-              className="size-4 accent-cyan-300"
-              onChange={(event) => updateField('featured', event.target.checked)}
-              type="checkbox"
-            />
-            Projekt wyrozniony
-          </label>
         </div>
         <div className="mt-4">
           <Field label="Linki, kazdy w osobnej linii">
@@ -2888,15 +2943,6 @@ function ProjectEditor({
             </Field>
           </div>
         </section>
-        <label className="flex items-center gap-3 text-sm text-[color:var(--muted)]">
-          <input
-            checked={state.featured}
-            className="size-4 accent-cyan-300"
-            onChange={(event) => updateField('featured', event.target.checked)}
-            type="checkbox"
-          />
-          Projekt wyróżniony
-        </label>
       </div>
       </fieldset>
 
@@ -2905,7 +2951,9 @@ function ProjectEditor({
           <div>
             <h3 className="font-semibold">Media projektu</h3>
             <p className="mt-1 text-sm text-[color:var(--muted)]">
-              Obrazy i filmy są wysyłane do Supabase Storage.
+              Obrazy i filmy sa wysylane do Supabase Storage. Przeciagnij
+              miniatury, aby zmienic kolejnosc. Pierwsze media sa miniaturka
+              projektu.
             </p>
           </div>
           <label className="focus-ring inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-[color:var(--border-strong)] bg-[color:var(--background)] px-4 py-2 text-sm font-medium hover:border-cyan-300/45">
@@ -2963,12 +3011,18 @@ function ProjectEditor({
             {projectMedia.map((media, index) => (
               <div
                 className={cn(
-                  'rounded-md border bg-[color:var(--background)] p-3',
+                  'rounded-md border bg-[color:var(--background)] p-3 transition-colors',
+                  draggingMediaId === media.id && 'opacity-50',
                   index === 0
                     ? 'border-cyan-300/50'
                     : 'border-[color:var(--border)]',
                 )}
+                draggable={!updateProjectMediaOrder.isPending}
                 key={media.id}
+                onDragEnd={() => setDraggingMediaId(null)}
+                onDragOver={handleMediaDragOver}
+                onDragStart={(event) => handleMediaDragStart(event, media.id)}
+                onDrop={(event) => void handleMediaDrop(event, media.id)}
               >
                 <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
                   {media.type === 'image' ? (
@@ -2995,47 +3049,19 @@ function ProjectEditor({
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-3 truncate text-sm font-medium">{media.alt}</p>
-                <p className="mt-1 text-xs text-[color:var(--muted)]">
-                  {media.type} / kolejnosc {index + 1}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    aria-label="Przesun wyzej"
-                    className="min-h-9 px-3"
-                    disabled={index === 0 || updateProjectMediaOrder.isPending}
-                    icon={<ArrowUp className="size-4" />}
-                    onClick={() => void handleMoveMedia(media.id, 'up')}
-                    type="button"
-                    variant="ghost"
+                <div className="mt-3 flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 grid size-8 shrink-0 cursor-grab place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] active:cursor-grabbing"
                   >
-                    Gora
-                  </Button>
-                  <Button
-                    aria-label="Przesun nizej"
-                    className="min-h-9 px-3"
-                    disabled={
-                      index === projectMedia.length - 1 ||
-                      updateProjectMediaOrder.isPending
-                    }
-                    icon={<ArrowDown className="size-4" />}
-                    onClick={() => void handleMoveMedia(media.id, 'down')}
-                    type="button"
-                    variant="ghost"
-                  >
-                    Dol
-                  </Button>
-                  {media.type === 'image' ? (
-                    <Button
-                      className="min-h-9 px-3"
-                      disabled={index === 0 || updateProjectMediaOrder.isPending}
-                      icon={<Star className="size-4" />}
-                      onClick={() => void handleSetCoverMedia(media.id)}
-                      type="button"
-                    >
-                      Miniaturka
-                    </Button>
-                  ) : null}
+                    <GripVertical className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{media.alt}</p>
+                    <p className="mt-1 text-xs text-[color:var(--muted)]">
+                      {media.type} / kolejnosc {index + 1}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   className="mt-3"

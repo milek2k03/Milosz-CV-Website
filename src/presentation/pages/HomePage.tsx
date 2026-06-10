@@ -56,21 +56,31 @@ export function HomePage() {
   const localizedProjects = projects.map((project) =>
     localizeProject(project, i18n.language),
   )
-  const featuredProjects = projects.filter((project) => project.featured)
-  const unityFeaturedProjects = featuredProjects.filter(
-    (project) => project.area === 'unity',
+  const unityAllProjects = projects.filter((project) => project.area === 'unity')
+  const webAllProjects = projects.filter((project) => project.area === 'web')
+  const unityFeaturedProjects = unityAllProjects.filter(
+    (project) => project.featured,
   )
-  const webFeaturedProjects = featuredProjects.filter(
-    (project) => project.area === 'web',
+  const webFeaturedProjects = webAllProjects.filter(
+    (project) => project.featured,
   )
+  const defaultUnityProjects =
+    unityFeaturedProjects.length > 0
+      ? unityFeaturedProjects.slice(0, 3)
+      : unityAllProjects.slice(0, 3)
+  const defaultWebProjects =
+    webFeaturedProjects.length > 0
+      ? webFeaturedProjects.slice(0, 3)
+      : webAllProjects.slice(0, 3)
   const unityProjects = showAllUnityProjects
-    ? unityFeaturedProjects
-    : unityFeaturedProjects.slice(0, 3)
+    ? unityAllProjects
+    : defaultUnityProjects
   const webProjects = showAllWebProjects
-    ? webFeaturedProjects
-    : webFeaturedProjects.slice(0, 3)
-  const hasMoreUnityProjects = unityFeaturedProjects.length > 3
-  const hasMoreWebProjects = webFeaturedProjects.length > 3
+    ? webAllProjects
+    : defaultWebProjects
+  const hasMoreUnityProjects =
+    unityAllProjects.length > defaultUnityProjects.length
+  const hasMoreWebProjects = webAllProjects.length > defaultWebProjects.length
   const scrollToSection = (sectionId: string) => {
     document
       .getElementById(sectionId)
