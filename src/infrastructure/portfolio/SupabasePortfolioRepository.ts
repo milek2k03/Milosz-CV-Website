@@ -296,6 +296,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     type: ProjectMediaType,
     alt?: string,
   ): Promise<ProjectMedia> {
+    const sortOrder = await this.getNextProjectMediaSortOrder(projectId)
     const storagePath = `${projectId}/${crypto.randomUUID()}.${getExtension(file.name)}`
     const { error: uploadError } = await this.client.storage
       .from(PROJECT_MEDIA_BUCKET)
@@ -321,6 +322,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
         url: publicUrlData.publicUrl,
         alt: alt?.trim() || sanitizeFileName(file.name),
         storage_path: storagePath,
+        sort_order: sortOrder,
       })
       .select()
       .single()
@@ -330,6 +332,26 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }
 
     return mapMediaRow(data)
+  }
+
+  async updateProjectMediaOrder(
+    projectId: string,
+    orderedMediaIds: string[],
+  ): Promise<void> {
+    const updates = orderedMediaIds.map((mediaId, index) =>
+      this.client
+        .from('project_media')
+        .update({ sort_order: (index + 1) * 10 })
+        .eq('id', mediaId)
+        .eq('project_id', projectId),
+    )
+
+    const results = await Promise.all(updates)
+    const error = results.find((result) => result.error)?.error
+
+    if (error) {
+      throw new Error(error.message)
+    }
   }
 
   async removeProjectMedia(media: ProjectMedia): Promise<void> {
@@ -551,6 +573,22 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }
 
     return data ?? []
+  }
+
+  private async getNextProjectMediaSortOrder(projectId: string): Promise<number> {
+    const { data, error } = await this.client
+      .from('project_media')
+      .select('sort_order')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return (data?.sort_order ?? 0) + 10
   }
 
   private async getTranslationsForProjects(

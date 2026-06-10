@@ -78,6 +78,22 @@ export function useRemoveProjectMedia() {
   })
 }
 
+export function useUpdateProjectMediaOrder() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: { projectId: string; orderedMediaIds: string[] }) =>
+      repository.updateProjectMediaOrder(
+        input.projectId,
+        input.orderedMediaIds,
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
+      await queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
 export function useUploadCv() {
   const queryClient = useQueryClient()
 

@@ -82,6 +82,15 @@ export class FallbackPortfolioRepository implements PortfolioRepository {
     throw new Error('Usuwanie mediow wymaga konfiguracji Supabase.')
   }
 
+  async updateProjectMediaOrder(
+    projectId: string,
+    orderedMediaIds: string[],
+  ): Promise<void> {
+    void projectId
+    void orderedMediaIds
+    throw new Error('Zmiana kolejnosci mediow wymaga konfiguracji Supabase.')
+  }
+
   async getCvDocument(locale: ProjectLocale): Promise<CvDocument | null> {
     void locale
     return null

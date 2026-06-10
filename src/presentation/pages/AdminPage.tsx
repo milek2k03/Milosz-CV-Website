@@ -1,4 +1,6 @@
 import {
+  ArrowDown,
+  ArrowUp,
   BarChart3,
   Eye,
   FileText,
@@ -11,6 +13,7 @@ import {
   RotateCcw,
   Save,
   Settings,
+  Star,
   Trash2,
   TrendingUp,
   Upload,
@@ -30,6 +33,7 @@ import {
   useDeleteProject,
   useRemoveProjectMedia,
   useSaveProject,
+  useUpdateProjectMediaOrder,
   useUpdatePortfolioSettings,
   useUpdateSiteContent,
   useUploadCv,
@@ -48,6 +52,7 @@ import type {
   ProjectLink,
   ProjectLinkType,
   ProjectLocale,
+  ProjectMedia,
   ProjectStatus,
   ProjectUpsertInput,
   SiteAreaPagesContent,
@@ -2096,6 +2101,15 @@ function ProjectEditor({
   const saveProject = useSaveProject()
   const uploadProjectMedia = useUploadProjectMedia()
   const removeProjectMedia = useRemoveProjectMedia()
+  const updateProjectMediaOrder = useUpdateProjectMediaOrder()
+  const projectMedia = useMemo(
+    () =>
+      [...(project?.media ?? [])].sort(
+        (firstMedia, secondMedia) =>
+          firstMedia.sortOrder - secondMedia.sortOrder,
+      ),
+    [project?.media],
+  )
 
   const updateField = <Field extends keyof ProjectFormState>(
     field: Field,
@@ -2162,7 +2176,70 @@ function ProjectEditor({
     }
   }
 
-  const isSaving = saveProject.isPending || uploadProjectMedia.isPending
+  const updateMediaOrder = async (
+    orderedMedia: ProjectMedia[],
+    successMessage: string,
+  ) => {
+    if (!project) {
+      return
+    }
+
+    try {
+      await updateProjectMediaOrder.mutateAsync({
+        projectId: project.id,
+        orderedMediaIds: orderedMedia.map((media) => media.id),
+      })
+      toast.success(successMessage)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleMoveMedia = async (
+    mediaId: string,
+    direction: 'up' | 'down',
+  ) => {
+    const currentIndex = projectMedia.findIndex((media) => media.id === mediaId)
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= projectMedia.length) {
+      return
+    }
+
+    const nextMediaOrder = [...projectMedia]
+    const currentMedia = nextMediaOrder[currentIndex]
+    const targetMedia = nextMediaOrder[targetIndex]
+
+    if (!currentMedia || !targetMedia) {
+      return
+    }
+
+    nextMediaOrder[currentIndex] = targetMedia
+    nextMediaOrder[targetIndex] = currentMedia
+
+    await updateMediaOrder(nextMediaOrder, 'Kolejnosc mediow zapisana.')
+  }
+
+  const handleSetCoverMedia = async (mediaId: string) => {
+    const selectedMedia = projectMedia.find((media) => media.id === mediaId)
+
+    if (!selectedMedia || selectedMedia.type !== 'image') {
+      return
+    }
+
+    await updateMediaOrder(
+      [
+        selectedMedia,
+        ...projectMedia.filter((media) => media.id !== selectedMedia.id),
+      ],
+      'Miniaturka projektu ustawiona.',
+    )
+  }
+
+  const isSaving =
+    saveProject.isPending ||
+    uploadProjectMedia.isPending ||
+    updateProjectMediaOrder.isPending
 
   return (
     <form
@@ -2632,7 +2709,7 @@ function ProjectEditor({
             <ImagePlus className="size-4" />
             Dodaj media
             <input
-              accept="image/*,video/*"
+              accept="image/*,video/mp4,video/webm"
               className="sr-only"
               multiple
               onChange={(event) =>
@@ -2652,24 +2729,110 @@ function ProjectEditor({
         </Field>
 
         {mediaFiles.length > 0 ? (
-          <ul className="mt-4 grid gap-2 text-sm text-[color:var(--muted)]">
-            {mediaFiles.map((file) => (
-              <li key={`${file.name}-${file.size}`}>{file.name}</li>
-            ))}
-          </ul>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {mediaFiles.map((file) => {
+              const isVideo = file.type.startsWith('video/')
+
+              return (
+                <div
+                  className="rounded-md border border-dashed border-[color:var(--border)] bg-[color:var(--background)] p-3"
+                  key={`${file.name}-${file.size}`}
+                >
+                  <div className="grid aspect-video place-items-center rounded-md bg-[color:var(--card)] text-xs text-[color:var(--muted)]">
+                    {isVideo
+                      ? 'Film gotowy do wyslania'
+                      : 'Obraz gotowy do wyslania'}
+                  </div>
+                  <p className="mt-3 truncate text-sm font-medium">
+                    {file.name}
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--muted)]">
+                    {isVideo ? 'video' : 'image'}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
         ) : null}
 
-        {project?.media.length ? (
+        {projectMedia.length ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {project.media.map((media) => (
+            {projectMedia.map((media, index) => (
               <div
-                className="rounded-md border border-[color:var(--border)] bg-[color:var(--background)] p-3"
+                className={cn(
+                  'rounded-md border bg-[color:var(--background)] p-3',
+                  index === 0
+                    ? 'border-cyan-300/50'
+                    : 'border-[color:var(--border)]',
+                )}
                 key={media.id}
               >
-                <p className="truncate text-sm">{media.alt}</p>
+                <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+                  {media.type === 'image' ? (
+                    <img
+                      alt={media.alt}
+                      className="aspect-video w-full object-cover"
+                      decoding="async"
+                      loading="lazy"
+                      src={media.url}
+                    />
+                  ) : (
+                    <video
+                      className="aspect-video w-full object-cover"
+                      controls
+                      muted
+                      preload="metadata"
+                      src={media.url}
+                    />
+                  )}
+                  {index === 0 ? (
+                    <span className="absolute left-2 top-2 rounded-md border border-cyan-300/40 bg-cyan-300/15 px-2 py-1 text-xs font-semibold text-cyan-100">
+                      Miniaturka
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-3 truncate text-sm font-medium">{media.alt}</p>
                 <p className="mt-1 text-xs text-[color:var(--muted)]">
-                  {media.type}
+                  {media.type} / kolejnosc {index + 1}
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    aria-label="Przesun wyzej"
+                    className="min-h-9 px-3"
+                    disabled={index === 0 || updateProjectMediaOrder.isPending}
+                    icon={<ArrowUp className="size-4" />}
+                    onClick={() => void handleMoveMedia(media.id, 'up')}
+                    type="button"
+                    variant="ghost"
+                  >
+                    Gora
+                  </Button>
+                  <Button
+                    aria-label="Przesun nizej"
+                    className="min-h-9 px-3"
+                    disabled={
+                      index === projectMedia.length - 1 ||
+                      updateProjectMediaOrder.isPending
+                    }
+                    icon={<ArrowDown className="size-4" />}
+                    onClick={() => void handleMoveMedia(media.id, 'down')}
+                    type="button"
+                    variant="ghost"
+                  >
+                    Dol
+                  </Button>
+                  {media.type === 'image' ? (
+                    <Button
+                      className="min-h-9 px-3"
+                      disabled={index === 0 || updateProjectMediaOrder.isPending}
+                      icon={<Star className="size-4" />}
+                      onClick={() => void handleSetCoverMedia(media.id)}
+                      type="button"
+                    >
+                      Miniaturka
+                    </Button>
+                  ) : null}
+                </div>
                 <Button
                   className="mt-3"
                   icon={<Trash2 className="size-4" />}

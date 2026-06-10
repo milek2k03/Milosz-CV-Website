@@ -26,6 +26,10 @@ export interface PortfolioRepository {
     type: ProjectMediaType,
     alt?: string,
   ): Promise<ProjectMedia>
+  updateProjectMediaOrder(
+    projectId: string,
+    orderedMediaIds: string[],
+  ): Promise<void>
   removeProjectMedia(media: ProjectMedia): Promise<void>
   getCvDocument(locale: ProjectLocale): Promise<CvDocument | null>
   uploadCv(file: File, locale: ProjectLocale): Promise<CvDocument>
