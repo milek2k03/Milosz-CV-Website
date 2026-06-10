@@ -16,7 +16,10 @@ import type { Project, ProjectMedia } from '@/domain/portfolio/entities'
 import { localizeProject } from '@/domain/portfolio/localizeProject'
 import { Badge } from '@/presentation/components/Badge'
 import { ButtonLink } from '@/presentation/components/Button'
-import { ProjectMediaView } from '@/presentation/components/project/ProjectMediaView'
+import {
+  ProjectMediaView,
+  VideoFrameThumbnail,
+} from '@/presentation/components/project/ProjectMediaView'
 
 interface ProjectCaseStudyProps {
   project: Project
@@ -396,6 +399,11 @@ function ProjectMediaGallery({
                     decoding="async"
                     loading="lazy"
                     src={thumbnailUrl}
+                  />
+                ) : item.type === 'video' ? (
+                  <VideoFrameThumbnail
+                    className="size-full object-fill"
+                    media={item}
                   />
                 ) : (
                   <span className="grid size-full place-items-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)]">
