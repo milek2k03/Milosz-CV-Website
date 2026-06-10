@@ -11,6 +11,7 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { siteProfile } from '@/config/profile'
+import { hasSupabaseConfig } from '@/config/env'
 import {
   useCvDocument,
   usePublishedProjects,
@@ -23,6 +24,10 @@ import { Badge } from '@/presentation/components/Badge'
 import { Button } from '@/presentation/components/Button'
 import { CompanyLogoMarquee } from '@/presentation/components/company/CompanyLogoMarquee'
 import { ContactForm } from '@/presentation/components/contact/ContactForm'
+import {
+  ProjectGridSkeleton,
+  PublicPageSkeleton,
+} from '@/presentation/components/LoadingSkeleton'
 import { ProjectCard } from '@/presentation/components/project/ProjectCard'
 import { SectionHeader } from '@/presentation/components/SectionHeader'
 import { Container } from '@/presentation/layout/Container'
@@ -35,9 +40,15 @@ export function HomePage() {
   const [showAllUnityProjects, setShowAllUnityProjects] = useState(false)
   const [showAllWebProjects, setShowAllWebProjects] = useState(false)
   const { data: projects = [], isLoading } = usePublishedProjects()
-  const { data: siteContent } = useSiteContent()
+  const { data: siteContent, isLoading: isSiteContentLoading } =
+    useSiteContent()
   const currentLocale = getSupportedLocale(i18n.language)
   const { data: cvDocument } = useCvDocument(currentLocale)
+
+  if (hasSupabaseConfig && isSiteContentLoading) {
+    return <PublicPageSkeleton />
+  }
+
   const content = getLocalizedSiteContent(siteContent, currentLocale)
   const cvUrl = cvDocument?.url ?? siteProfile.cvUrl
   const workflowItems = content.workflowItems
@@ -154,9 +165,7 @@ export function HomePage() {
 
           <div className="mt-10 grid gap-6">
             {isLoading ? (
-              <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
-                {t('common.loadingProjects')}
-              </div>
+              <ProjectGridSkeleton />
             ) : (
               <>
                 {unityProjects.length > 0 ? (
