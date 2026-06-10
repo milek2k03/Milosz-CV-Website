@@ -33,7 +33,9 @@ import {
   useDeleteProject,
   useRemoveProjectMedia,
   useSaveProject,
+  useUpdateProjectFeatured,
   useUpdateProjectMediaOrder,
+  useUpdateProjectOrder,
   useUpdatePortfolioSettings,
   useUpdateSiteContent,
   useUploadCv,
@@ -1209,6 +1211,68 @@ function ProjectsManager({
   selectedId: string | null
   selectedProject: Project | null
 }) {
+  const updateProjectOrder = useUpdateProjectOrder()
+  const updateProjectFeatured = useUpdateProjectFeatured()
+  const unityProjects = projects.filter((project) => project.area === 'unity')
+  const webProjects = projects.filter((project) => project.area === 'web')
+
+  const handleMoveProject = async (
+    area: ProjectArea,
+    projectId: string,
+    direction: 'up' | 'down',
+  ) => {
+    const areaProjects = area === 'unity' ? unityProjects : webProjects
+    const currentIndex = areaProjects.findIndex(
+      (project) => project.id === projectId,
+    )
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (
+      currentIndex < 0 ||
+      targetIndex < 0 ||
+      targetIndex >= areaProjects.length
+    ) {
+      return
+    }
+
+    const nextProjects = [...areaProjects]
+    const currentProject = nextProjects[currentIndex]
+    const targetProject = nextProjects[targetIndex]
+
+    if (!currentProject || !targetProject) {
+      return
+    }
+
+    nextProjects[currentIndex] = targetProject
+    nextProjects[targetIndex] = currentProject
+
+    try {
+      await updateProjectOrder.mutateAsync({
+        area,
+        orderedProjectIds: nextProjects.map((project) => project.id),
+      })
+      toast.success('Kolejnosc projektow zapisana.')
+    } catch (moveError) {
+      toast.error(getErrorMessage(moveError))
+    }
+  }
+
+  const handleToggleFeatured = async (project: Project) => {
+    try {
+      await updateProjectFeatured.mutateAsync({
+        featured: !project.featured,
+        id: project.id,
+      })
+      toast.success(
+        project.featured
+          ? 'Projekt usuniety z wyroznionych.'
+          : 'Projekt dodany do wyroznionych.',
+      )
+    } catch (featuredError) {
+      toast.error(getErrorMessage(featuredError))
+    }
+  }
+
   return (
     <section id="admin-active-section" className="grid gap-5">
       <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-5">
@@ -1239,25 +1303,31 @@ function ProjectsManager({
               {projects.length}
             </span>
           </div>
-          <div className="grid gap-2">
-            {projects.map((project) => (
-              <button
-                className={cn(
-                  'focus-ring rounded-md border px-3 py-3 text-left text-sm transition-colors',
-                  selectedId === project.id
-                    ? 'border-[#d8b982]/70 bg-[#d8b982]/12'
-                    : 'border-[color:var(--border)] hover:border-[#d8b982]/50',
-                )}
-                key={project.id}
-                onClick={() => onSelectProject(project.id)}
-                type="button"
-              >
-                <span className="block font-medium">{project.title}</span>
-                <span className="mt-1 block text-xs text-[color:var(--muted)]">
-                  {project.status} / {project.area} / {project.year}
-                </span>
-              </button>
-            ))}
+          <div className="grid gap-5">
+            <ProjectListSection
+              area="unity"
+              isMutating={
+                updateProjectOrder.isPending || updateProjectFeatured.isPending
+              }
+              onMoveProject={handleMoveProject}
+              onSelectProject={onSelectProject}
+              onToggleFeatured={handleToggleFeatured}
+              projects={unityProjects}
+              selectedId={selectedId}
+              title="Unity / VR"
+            />
+            <ProjectListSection
+              area="web"
+              isMutating={
+                updateProjectOrder.isPending || updateProjectFeatured.isPending
+              }
+              onMoveProject={handleMoveProject}
+              onSelectProject={onSelectProject}
+              onToggleFeatured={handleToggleFeatured}
+              projects={webProjects}
+              selectedId={selectedId}
+              title="Strony internetowe"
+            />
           </div>
 
           {selectedProject ? (
@@ -1279,6 +1349,129 @@ function ProjectsManager({
         />
       </div>
     </section>
+  )
+}
+
+function ProjectListSection({
+  area,
+  isMutating,
+  onMoveProject,
+  onSelectProject,
+  onToggleFeatured,
+  projects,
+  selectedId,
+  title,
+}: {
+  area: ProjectArea
+  isMutating: boolean
+  onMoveProject(
+    area: ProjectArea,
+    projectId: string,
+    direction: 'up' | 'down',
+  ): Promise<void>
+  onSelectProject(projectId: string): void
+  onToggleFeatured(project: Project): Promise<void>
+  projects: Project[]
+  selectedId: string | null
+  title: string
+}) {
+  const featuredCount = projects.filter((project) => project.featured).length
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-sm font-semibold text-[color:var(--text)]">
+          {title}
+        </h4>
+        <span className="text-xs text-[color:var(--muted)]">
+          {featuredCount}/3 wyroznione
+        </span>
+      </div>
+
+      {projects.length > 0 ? (
+        projects.map((project, index) => {
+          const isSelected = selectedId === project.id
+
+          return (
+            <article
+              className={cn(
+                'rounded-md border p-2 transition-colors',
+                isSelected
+                  ? 'border-[#d8b982]/70 bg-[#d8b982]/12'
+                  : 'border-[color:var(--border)] hover:border-[#d8b982]/50',
+              )}
+              key={project.id}
+            >
+              <div className="flex items-start gap-2">
+                <button
+                  aria-label={
+                    project.featured
+                      ? 'Usun z wyroznionych'
+                      : 'Dodaj do wyroznionych'
+                  }
+                  className={cn(
+                    'focus-ring mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition-colors',
+                    project.featured
+                      ? 'border-[#d8b982]/70 bg-[#d8b982]/15 text-[#d8b982]'
+                      : 'border-[color:var(--border)] text-[color:var(--muted)] hover:text-[#d8b982]',
+                  )}
+                  disabled={isMutating}
+                  onClick={() => void onToggleFeatured(project)}
+                  type="button"
+                >
+                  <Star
+                    className="size-4"
+                    fill={project.featured ? 'currentColor' : 'none'}
+                  />
+                </button>
+
+                <button
+                  className="focus-ring min-w-0 flex-1 rounded-sm text-left text-sm"
+                  onClick={() => onSelectProject(project.id)}
+                  type="button"
+                >
+                  <span className="block text-clamp-2 font-medium">
+                    {project.title}
+                  </span>
+                  <span className="mt-1 block text-xs text-[color:var(--muted)]">
+                    {project.status} / {project.year}
+                  </span>
+                </button>
+
+                <div className="flex shrink-0 flex-col gap-1">
+                  <button
+                    aria-label="Przesun projekt wyzej"
+                    className="focus-ring grid size-7 place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] transition-colors hover:text-white disabled:opacity-40"
+                    disabled={index === 0 || isMutating}
+                    onClick={() =>
+                      void onMoveProject(area, project.id, 'up')
+                    }
+                    type="button"
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </button>
+                  <button
+                    aria-label="Przesun projekt nizej"
+                    className="focus-ring grid size-7 place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] transition-colors hover:text-white disabled:opacity-40"
+                    disabled={index === projects.length - 1 || isMutating}
+                    onClick={() =>
+                      void onMoveProject(area, project.id, 'down')
+                    }
+                    type="button"
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            </article>
+          )
+        })
+      ) : (
+        <div className="rounded-md border border-dashed border-[color:var(--border)] p-3 text-sm text-[color:var(--muted)]">
+          Brak projektow w tej sekcji.
+        </div>
+      )}
+    </div>
   )
 }
 

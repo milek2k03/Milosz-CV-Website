@@ -64,6 +64,21 @@ export class FallbackPortfolioRepository implements PortfolioRepository {
     throw new Error('Usuwanie projektow wymaga konfiguracji Supabase.')
   }
 
+  async updateProjectOrder(
+    area: Project['area'],
+    orderedProjectIds: string[],
+  ): Promise<void> {
+    void area
+    void orderedProjectIds
+    throw new Error('Zmiana kolejnosci projektow wymaga konfiguracji Supabase.')
+  }
+
+  async updateProjectFeatured(id: string, featured: boolean): Promise<void> {
+    void id
+    void featured
+    throw new Error('Wyroznianie projektow wymaga konfiguracji Supabase.')
+  }
+
   async uploadProjectMedia(
     projectId: string,
     file: File,

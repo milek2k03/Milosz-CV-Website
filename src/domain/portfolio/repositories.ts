@@ -20,6 +20,8 @@ export interface PortfolioRepository {
   getProjectBySlug(slug: string): Promise<Project | null>
   upsertProject(input: ProjectUpsertInput): Promise<Project>
   deleteProject(id: string): Promise<void>
+  updateProjectOrder(area: Project['area'], orderedProjectIds: string[]): Promise<void>
+  updateProjectFeatured(id: string, featured: boolean): Promise<void>
   uploadProjectMedia(
     projectId: string,
     file: File,

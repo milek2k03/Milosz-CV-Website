@@ -43,6 +43,7 @@ export interface Project {
   area: ProjectArea
   status: ProjectStatus
   featured: boolean
+  sortOrder: number
   links: ProjectLink[]
   media: ProjectMedia[]
   translations?: Partial<Record<ProjectLocale, ProjectLocalizedContent>>

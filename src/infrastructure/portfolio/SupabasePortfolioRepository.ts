@@ -7,6 +7,7 @@ import type {
   CvDocument,
   PageViewInput,
   Project,
+  ProjectArea,
   ProjectLocalizedContent,
   ProjectLocale,
   ProjectMedia,
@@ -284,6 +285,37 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
 
   async deleteProject(id: string): Promise<void> {
     const { error } = await this.client.from('projects').delete().eq('id', id)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async updateProjectOrder(
+    area: ProjectArea,
+    orderedProjectIds: string[],
+  ): Promise<void> {
+    const updates = orderedProjectIds.map((projectId, index) =>
+      this.client
+        .from('projects')
+        .update({ sort_order: (index + 1) * 10 })
+        .eq('id', projectId)
+        .eq('area', area),
+    )
+
+    const results = await Promise.all(updates)
+    const error = results.find((result) => result.error)?.error
+
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async updateProjectFeatured(id: string, featured: boolean): Promise<void> {
+    const { error } = await this.client
+      .from('projects')
+      .update({ featured })
+      .eq('id', id)
 
     if (error) {
       throw new Error(error.message)

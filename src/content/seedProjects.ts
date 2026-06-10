@@ -30,6 +30,7 @@ export const seedProjects: Project[] = [
     area: 'unity',
     status: 'published',
     featured: true,
+    sortOrder: 10,
     links: [
       {
         label: 'Case study',
@@ -93,6 +94,7 @@ export const seedProjects: Project[] = [
     area: 'unity',
     status: 'published',
     featured: true,
+    sortOrder: 20,
     links: [
       {
         label: 'Case study',
@@ -163,6 +165,7 @@ export const seedProjects: Project[] = [
     area: 'web',
     status: 'published',
     featured: true,
+    sortOrder: 10,
     links: [
       {
         label: 'Case study',

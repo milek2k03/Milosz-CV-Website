@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   ProjectMedia,
   ProjectMediaType,
+  ProjectArea,
   ProjectLocale,
   ProjectUpsertInput,
   PortfolioSettings,
@@ -36,6 +37,32 @@ export function useDeleteProject() {
 
   return useMutation({
     mutationFn: (id: string) => repository.deleteProject(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
+      await queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useUpdateProjectOrder() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: { area: ProjectArea; orderedProjectIds: string[] }) =>
+      repository.updateProjectOrder(input.area, input.orderedProjectIds),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
+      await queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useUpdateProjectFeatured() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: { id: string; featured: boolean }) =>
+      repository.updateProjectFeatured(input.id, input.featured),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] })
       await queryClient.invalidateQueries({ queryKey: ['projects'] })

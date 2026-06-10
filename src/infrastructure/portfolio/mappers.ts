@@ -89,6 +89,7 @@ export const mapProjectRow = (
   area: row.area,
   status: row.status as ProjectStatus,
   featured: row.featured,
+  sortOrder: row.sort_order,
   links: parseProjectLinks(row.links),
   media: mediaRows.map(mapMediaRow),
   translations: mapTranslationRows(translationRows),
