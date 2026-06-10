@@ -11,6 +11,7 @@ interface ProjectMediaViewProps {
   media: ProjectMedia
   autoPlay?: boolean
   priority?: boolean
+  showVideoBadge?: boolean
   thumbnailOnly?: boolean
 }
 
@@ -54,8 +55,20 @@ export function ProjectMediaView({
   autoPlay = false,
   media,
   priority = false,
+  showVideoBadge = true,
   thumbnailOnly = false,
 }: ProjectMediaViewProps) {
+  const handleCanPlay = (event: SyntheticEvent<HTMLVideoElement>) => {
+    if (!autoPlay) {
+      return
+    }
+
+    const video = event.currentTarget
+    video.muted = false
+    video.volume = 1
+    void video.play().catch(() => undefined)
+  }
+
   if (media.type === 'video') {
     if (thumbnailOnly) {
       return (
@@ -72,10 +85,12 @@ export function ProjectMediaView({
           ) : (
             <VideoFrameThumbnail media={media} />
           )}
-          <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/45 px-2 py-1 text-xs text-white">
-            <Play className="size-3" />
-            Video
-          </div>
+          {showVideoBadge ? (
+            <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/45 px-2 py-1 text-xs text-white">
+              <Play className="size-3" />
+              Video
+            </div>
+          ) : null}
         </div>
       )
     }
@@ -87,17 +102,23 @@ export function ProjectMediaView({
           autoPlay={autoPlay}
           className="aspect-video w-full object-contain"
           controls
-          muted={autoPlay}
+          controlsList="nodownload noplaybackrate"
+          disablePictureInPicture
+          disableRemotePlayback
+          muted={false}
+          onCanPlay={handleCanPlay}
           playsInline
           preload={autoPlay ? 'auto' : 'metadata'}
           poster={media.posterUrl}
         >
           <source src={media.url} />
         </video>
-        <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/45 px-2 py-1 text-xs text-white">
-          <Play className="size-3" />
-          Video
-        </div>
+        {showVideoBadge ? (
+          <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/45 px-2 py-1 text-xs text-white">
+            <Play className="size-3" />
+            Video
+          </div>
+        ) : null}
       </div>
     )
   }

@@ -344,6 +344,7 @@ function ProjectMediaGallery({
           key={selectedMedia.id}
           media={selectedMedia}
           priority
+          showVideoBadge={false}
         />
 
         <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-[color:var(--border)] bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
