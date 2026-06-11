@@ -19,9 +19,10 @@ import {
   UserRound,
   Users,
 } from 'lucide-react'
-import type { DragEvent, FormEvent, ReactNode } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Reorder, useDragControls } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { Toaster } from 'react-hot-toast'
 import { z } from 'zod'
@@ -87,6 +88,14 @@ const linkTypes: ProjectLinkType[] = [
 ]
 
 type AdminSection = 'analytics' | 'content' | 'projects' | 'media' | 'settings'
+
+type EditableCompanyLogo = CompanyLogo & {
+  clientId: string
+}
+
+type EditableSiteContent = Omit<SiteContent, 'companyLogos'> & {
+  companyLogos: EditableCompanyLogo[]
+}
 
 const adminNavItems = [
   {
@@ -302,30 +311,25 @@ const emptyFormState: ProjectFormState = {
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Wystąpił nieznany błąd.'
 
-const reorderItems = <Item,>(
+const createClientId = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `local-${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+const haveSameOrder = (firstIds: string[], secondIds: string[]) =>
+  firstIds.length === secondIds.length &&
+  firstIds.every((id, index) => id === secondIds[index])
+
+const orderItemsByIds = <Item extends { id: string }>(
   items: Item[],
-  fromIndex: number,
-  toIndex: number,
+  orderedIds: string[],
 ) => {
-  if (
-    fromIndex < 0 ||
-    toIndex < 0 ||
-    fromIndex === toIndex ||
-    fromIndex >= items.length ||
-    toIndex >= items.length
-  ) {
-    return items
-  }
+  const itemsById = new Map(items.map((item) => [item.id, item]))
+  const orderedItems = orderedIds
+    .map((id) => itemsById.get(id))
+    .filter((item): item is Item => Boolean(item))
+  const missingItems = items.filter((item) => !orderedIds.includes(item.id))
 
-  const nextItems = [...items]
-  const [movedItem] = nextItems.splice(fromIndex, 1)
-
-  if (!movedItem) {
-    return items
-  }
-
-  nextItems.splice(toIndex, 0, movedItem)
-  return nextItems
+  return [...orderedItems, ...missingItems]
 }
 
 const projectFieldLabels: Record<string, string> = {
@@ -425,12 +429,13 @@ const parseStackCards = (value: string): SiteStackCardContent[] =>
     return { title, text }
   })
 
-const createCompanyLogo = (): CompanyLogo => ({
+const createCompanyLogo = (): EditableCompanyLogo => ({
+  clientId: createClientId(),
   name: 'Nowa firma',
   shortName: 'Firma',
 })
 
-const cloneSiteContent = (content: SiteContent): SiteContent => ({
+const cloneSiteContent = (content: SiteContent): EditableSiteContent => ({
   locales: {
     pl: {
       ...content.locales.pl,
@@ -459,8 +464,23 @@ const cloneSiteContent = (content: SiteContent): SiteContent => ({
       contact: { ...content.locales.en.contact },
     },
   },
-  companyLogos: content.companyLogos.map((logo) => ({ ...logo })),
+  companyLogos: content.companyLogos.map((logo) => ({
+    ...logo,
+    clientId: createClientId(),
+  })),
   updatedAt: content.updatedAt,
+})
+
+const getPersistableSiteContent = (
+  content: EditableSiteContent,
+): SiteContent => ({
+  ...content,
+  companyLogos: content.companyLogos.map((logo) => ({
+    imageUrl: logo.imageUrl,
+    name: logo.name,
+    shortName: logo.shortName,
+    storagePath: logo.storagePath,
+  })),
 })
 
 const hasTranslationDraft = (state: ProjectFormState) =>
@@ -1384,56 +1404,35 @@ function ProjectListSection({
   selectedId: string | null
   title: string
 }) {
-  const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null)
+  const projectIds = useMemo(
+    () => projects.map((project) => project.id),
+    [projects],
+  )
+  const projectOrderKey = projectIds.join('|')
+  const [projectOrderState, setProjectOrderState] = useState({
+    ids: projectIds,
+    sourceKey: projectOrderKey,
+  })
+  const orderedProjectIds =
+    projectOrderState.sourceKey === projectOrderKey
+      ? projectOrderState.ids
+      : projectIds
   const featuredCount = projects.filter((project) => project.featured).length
   const canAddFeatured = featuredCount < 3
-
-  const handleDragStart = (
-    event: DragEvent<HTMLElement>,
-    projectId: string,
-  ) => {
-    if (isMutating) {
-      event.preventDefault()
-      return
-    }
-
-    setDraggingProjectId(projectId)
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', projectId)
+  const orderedProjects = useMemo(
+    () => orderItemsByIds(projects, orderedProjectIds),
+    [orderedProjectIds, projects],
+  )
+  const setNextOrderedProjectIds = (ids: string[]) => {
+    setProjectOrderState({ ids, sourceKey: projectOrderKey })
   }
 
-  const handleDragOver = (event: DragEvent<HTMLElement>) => {
-    if (!draggingProjectId || isMutating) {
+  const handleProjectDragEnd = async () => {
+    if (isMutating || haveSameOrder(projectIds, orderedProjectIds)) {
       return
     }
 
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-  }
-
-  const handleDrop = async (
-    event: DragEvent<HTMLElement>,
-    targetProjectId: string,
-  ) => {
-    event.preventDefault()
-
-    const sourceProjectId =
-      draggingProjectId || event.dataTransfer.getData('text/plain')
-    const sourceIndex = projects.findIndex(
-      (project) => project.id === sourceProjectId,
-    )
-    const targetIndex = projects.findIndex(
-      (project) => project.id === targetProjectId,
-    )
-    const nextProjects = reorderItems(projects, sourceIndex, targetIndex)
-
-    setDraggingProjectId(null)
-
-    if (nextProjects === projects) {
-      return
-    }
-
-    await onReorderProjects(area, nextProjects)
+    await onReorderProjects(area, orderedProjects)
   }
 
   return (
@@ -1447,84 +1446,121 @@ function ProjectListSection({
         </span>
       </div>
 
-      {projects.length > 0 ? (
-        projects.map((project) => {
-          const isSelected = selectedId === project.id
-
-          return (
-            <article
-              className={cn(
-                'rounded-md border p-2 transition-colors',
-                draggingProjectId === project.id && 'opacity-50',
-                isSelected
-                  ? 'border-[#d8b982]/70 bg-[#d8b982]/12'
-                  : 'border-[color:var(--border)] hover:border-[#d8b982]/50',
-              )}
-              draggable={!isMutating}
+      {orderedProjects.length > 0 ? (
+        <Reorder.Group
+          as="div"
+          axis="y"
+          className="grid gap-2"
+          onReorder={setNextOrderedProjectIds}
+          values={orderedProjectIds}
+        >
+          {orderedProjects.map((project) => (
+            <SortableProjectListItem
+              canAddFeatured={canAddFeatured}
+              isMutating={isMutating}
+              isSelected={selectedId === project.id}
               key={project.id}
-              onDragEnd={() => setDraggingProjectId(null)}
-              onDragOver={handleDragOver}
-              onDragStart={(event) => handleDragStart(event, project.id)}
-              onDrop={(event) => void handleDrop(event, project.id)}
-            >
-              <div className="flex items-start gap-2">
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 grid size-8 shrink-0 cursor-grab place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] active:cursor-grabbing"
-                >
-                  <GripVertical className="size-4" />
-                </span>
-                <button
-                  aria-label={
-                    project.featured
-                      ? 'Usun z wyroznionych'
-                      : 'Dodaj do wyroznionych'
-                  }
-                  className={cn(
-                    'focus-ring mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-45',
-                    project.featured
-                      ? 'border-[#d8b982]/70 bg-[#d8b982]/15 text-[#d8b982]'
-                      : 'border-[color:var(--border)] text-[color:var(--muted)] hover:text-[#d8b982]',
-                  )}
-                  disabled={isMutating || (!project.featured && !canAddFeatured)}
-                  onClick={() => void onToggleFeatured(project)}
-                  title={
-                    project.featured
-                      ? 'Usun gwiazdke'
-                      : canAddFeatured
-                        ? 'Wyroznij projekt na stronie glownej'
-                        : 'Limit 3 wyroznionych projektow w tej sekcji'
-                  }
-                  type="button"
-                >
-                  <Star
-                    className="size-4"
-                    fill={project.featured ? 'currentColor' : 'none'}
-                  />
-                </button>
-
-                <button
-                  className="focus-ring min-w-0 flex-1 rounded-sm text-left text-sm"
-                  onClick={() => onSelectProject(project.id)}
-                  type="button"
-                >
-                  <span className="block text-clamp-2 font-medium">
-                    {project.title}
-                  </span>
-                  <span className="mt-1 block text-xs text-[color:var(--muted)]">
-                    {project.status} / {project.year}
-                  </span>
-                </button>
-              </div>
-            </article>
-          )
-        })
+              onDragEnd={handleProjectDragEnd}
+              onSelectProject={onSelectProject}
+              onToggleFeatured={onToggleFeatured}
+              project={project}
+            />
+          ))}
+        </Reorder.Group>
       ) : (
         <div className="rounded-md border border-dashed border-[color:var(--border)] p-3 text-sm text-[color:var(--muted)]">
           Brak projektow w tej sekcji.
         </div>
       )}
     </div>
+  )
+}
+
+function SortableProjectListItem({
+  canAddFeatured,
+  isMutating,
+  isSelected,
+  onDragEnd,
+  onSelectProject,
+  onToggleFeatured,
+  project,
+}: {
+  canAddFeatured: boolean
+  isMutating: boolean
+  isSelected: boolean
+  onDragEnd(): Promise<void>
+  onSelectProject(projectId: string): void
+  onToggleFeatured(project: Project): Promise<void>
+  project: Project
+}) {
+  const dragControls = useDragControls()
+
+  return (
+    <Reorder.Item
+      as="article"
+      className={cn(
+        'rounded-md border p-2 transition-colors',
+        isSelected
+          ? 'border-[#d8b982]/70 bg-[#d8b982]/12'
+          : 'border-[color:var(--border)] hover:border-[#d8b982]/50',
+      )}
+      drag={!isMutating}
+      dragControls={dragControls}
+      dragListener={false}
+      onDragEnd={() => void onDragEnd()}
+      value={project.id}
+      whileDrag={{ scale: 1.015, zIndex: 30 }}
+    >
+      <div className="flex items-start gap-2">
+        <button
+          aria-label="Przeciagnij projekt"
+          className="focus-ring mt-0.5 grid size-8 shrink-0 cursor-grab place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] active:cursor-grabbing"
+          onPointerDown={(event) => dragControls.start(event)}
+          type="button"
+        >
+          <GripVertical className="size-4" />
+        </button>
+        <button
+          aria-label={
+            project.featured ? 'Usun z wyroznionych' : 'Dodaj do wyroznionych'
+          }
+          className={cn(
+            'focus-ring mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+            project.featured
+              ? 'border-[#d8b982]/70 bg-[#d8b982]/15 text-[#d8b982]'
+              : 'border-[color:var(--border)] text-[color:var(--muted)] hover:text-[#d8b982]',
+          )}
+          disabled={isMutating || (!project.featured && !canAddFeatured)}
+          onClick={() => void onToggleFeatured(project)}
+          title={
+            project.featured
+              ? 'Usun gwiazdke'
+              : canAddFeatured
+                ? 'Wyroznij projekt na stronie glownej'
+                : 'Limit 3 wyroznionych projektow w tej sekcji'
+          }
+          type="button"
+        >
+          <Star
+            className="size-4"
+            fill={project.featured ? 'currentColor' : 'none'}
+          />
+        </button>
+
+        <button
+          className="focus-ring min-w-0 flex-1 rounded-sm text-left text-sm"
+          onClick={() => onSelectProject(project.id)}
+          type="button"
+        >
+          <span className="block text-clamp-2 font-medium">
+            {project.title}
+          </span>
+          <span className="mt-1 block text-xs text-[color:var(--muted)]">
+            {project.status} / {project.year}
+          </span>
+        </button>
+      </div>
+    </Reorder.Item>
   )
 }
 
@@ -1579,9 +1615,10 @@ function SiteContentEditor({
 }) {
   const updateSiteContent = useUpdateSiteContent()
   const uploadCompanyLogo = useUploadCompanyLogo()
-  const [state, setState] = useState<SiteContent>(() =>
+  const [state, setState] = useState<EditableSiteContent>(() =>
     cloneSiteContent(initialContent),
   )
+  const companyLogoIds = state.companyLogos.map((logo) => logo.clientId)
 
   const updateLocale = (
     locale: ProjectLocale,
@@ -1598,7 +1635,7 @@ function SiteContentEditor({
 
   const updateCompanyLogo = (
     index: number,
-    updater: (logo: CompanyLogo) => CompanyLogo,
+    updater: (logo: EditableCompanyLogo) => EditableCompanyLogo,
   ) => {
     setState((current) => ({
       ...current,
@@ -1620,6 +1657,25 @@ function SiteContentEditor({
       ...current,
       companyLogos: current.companyLogos.filter((_, logoIndex) => logoIndex !== index),
     }))
+  }
+
+  const handleCompanyLogoReorder = (orderedIds: string[]) => {
+    setState((current) => {
+      const logosById = new Map(
+        current.companyLogos.map((logo) => [logo.clientId, logo]),
+      )
+      const orderedLogos = orderedIds
+        .map((id) => logosById.get(id))
+        .filter((logo): logo is EditableCompanyLogo => Boolean(logo))
+      const missingLogos = current.companyLogos.filter(
+        (logo) => !orderedIds.includes(logo.clientId),
+      )
+
+      return {
+        ...current,
+        companyLogos: [...orderedLogos, ...missingLogos],
+      }
+    })
   }
 
   const handleCompanyLogoUpload = async (
@@ -1657,7 +1713,7 @@ function SiteContentEditor({
 
   const handleSave = async () => {
     try {
-      const values = siteContentSchema.parse(state)
+      const values = siteContentSchema.parse(getPersistableSiteContent(state))
       await updateSiteContent.mutateAsync({
         ...values,
         updatedAt: state.updatedAt,
@@ -1733,104 +1789,154 @@ function SiteContentEditor({
             </Button>
           </div>
 
-          <div className="mt-5 grid gap-4">
+          <Reorder.Group
+            as="div"
+            axis="y"
+            className="mt-5 grid gap-4"
+            onReorder={handleCompanyLogoReorder}
+            values={companyLogoIds}
+          >
             {state.companyLogos.map((logo, index) => (
-              <div
-                className="grid gap-4 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-4 lg:grid-cols-[220px_minmax(0,1fr)]"
-                key={`${logo.storagePath ?? logo.name}-${index}`}
-              >
-                <div>
-                  <div className="aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--background)]">
-                    {logo.imageUrl ? (
-                      <img
-                        alt={logo.name}
-                        className="h-full w-full object-contain p-3"
-                        loading="lazy"
-                        src={logo.imageUrl}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center px-4 text-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)]">
-                        Brak zdjecia 16:9
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">
-                    Podglad ma taki sam format jak kafelek w pasku.
-                  </p>
-                </div>
-
-                <div className="grid gap-3">
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <Field label="Nazwa firmy">
-                      <input
-                        className="form-field"
-                        onChange={(event) =>
-                          updateCompanyLogo(index, (current) => ({
-                            ...current,
-                            name: event.target.value,
-                          }))
-                        }
-                        value={logo.name}
-                      />
-                    </Field>
-                    <Field label="Tekst awaryjny">
-                      <input
-                        className="form-field"
-                        onChange={(event) =>
-                          updateCompanyLogo(index, (current) => ({
-                            ...current,
-                            shortName: event.target.value,
-                          }))
-                        }
-                        value={logo.shortName}
-                      />
-                    </Field>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="focus-ring inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-[color:var(--border-strong)] bg-[color:var(--background)] px-4 text-sm font-medium transition-colors hover:border-cyan-300/45">
-                      <ImagePlus className="size-4" />
-                      Wgraj zdjecie
-                      <input
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        onChange={(event) => {
-                          void handleCompanyLogoUpload(
-                            index,
-                            event.currentTarget.files?.[0],
-                          )
-                          event.currentTarget.value = ''
-                        }}
-                        type="file"
-                      />
-                    </label>
-                    <Button
-                      disabled={state.companyLogos.length <= 1}
-                      icon={<Trash2 className="size-4" />}
-                      onClick={() => handleRemoveCompanyLogo(index)}
-                      type="button"
-                      variant="danger"
-                    >
-                      Usun
-                    </Button>
-                    {logo.imageUrl ? (
-                      <a
-                        className="text-sm font-medium text-[color:var(--primary)] hover:text-sky-200"
-                        href={logo.imageUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        Otworz plik
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
+              <CompanyLogoEditorItem
+                canRemove={state.companyLogos.length > 1}
+                index={index}
+                key={logo.clientId}
+                logo={logo}
+                onRemove={handleRemoveCompanyLogo}
+                onUpdate={updateCompanyLogo}
+                onUpload={handleCompanyLogoUpload}
+              />
             ))}
-          </div>
+          </Reorder.Group>
         </div>
       </div>
     </section>
+  )
+}
+
+function CompanyLogoEditorItem({
+  canRemove,
+  index,
+  logo,
+  onRemove,
+  onUpdate,
+  onUpload,
+}: {
+  canRemove: boolean
+  index: number
+  logo: EditableCompanyLogo
+  onRemove(index: number): void
+  onUpdate(
+    index: number,
+    updater: (logo: EditableCompanyLogo) => EditableCompanyLogo,
+  ): void
+  onUpload(index: number, file: File | undefined): Promise<void>
+}) {
+  const dragControls = useDragControls()
+
+  return (
+    <Reorder.Item
+      className="grid gap-4 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-4 lg:grid-cols-[42px_220px_minmax(0,1fr)]"
+      dragControls={dragControls}
+      dragListener={false}
+      value={logo.clientId}
+      whileDrag={{ scale: 1.01, zIndex: 30 }}
+    >
+      <div className="flex lg:justify-center">
+        <button
+          aria-label="Przeciagnij firme"
+          className="focus-ring grid size-9 cursor-grab place-items-center rounded-md border border-[color:var(--border)] text-[color:var(--muted)] active:cursor-grabbing"
+          onPointerDown={(event) => dragControls.start(event)}
+          type="button"
+        >
+          <GripVertical className="size-4" />
+        </button>
+      </div>
+
+      <div>
+        <div className="aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--background)]">
+          {logo.imageUrl ? (
+            <img
+              alt={logo.name}
+              className="h-full w-full object-contain p-3"
+              loading="lazy"
+              src={logo.imageUrl}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center px-4 text-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)]">
+              Brak zdjecia 16:9
+            </div>
+          )}
+        </div>
+        <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">
+          Podglad ma taki sam format jak kafelek w pasku.
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Nazwa firmy">
+            <input
+              className="form-field"
+              onChange={(event) =>
+                onUpdate(index, (current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+              value={logo.name}
+            />
+          </Field>
+          <Field label="Tekst awaryjny">
+            <input
+              className="form-field"
+              onChange={(event) =>
+                onUpdate(index, (current) => ({
+                  ...current,
+                  shortName: event.target.value,
+                }))
+              }
+              value={logo.shortName}
+            />
+          </Field>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="focus-ring inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-[color:var(--border-strong)] bg-[color:var(--background)] px-4 text-sm font-medium transition-colors hover:border-cyan-300/45">
+            <ImagePlus className="size-4" />
+            Wgraj zdjecie
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                void onUpload(index, event.currentTarget.files?.[0])
+                event.currentTarget.value = ''
+              }}
+              type="file"
+            />
+          </label>
+          <Button
+            disabled={!canRemove}
+            icon={<Trash2 className="size-4" />}
+            onClick={() => onRemove(index)}
+            type="button"
+            variant="danger"
+          >
+            Usun
+          </Button>
+          {logo.imageUrl ? (
+            <a
+              className="text-sm font-medium text-[color:var(--primary)] hover:text-sky-200"
+              href={logo.imageUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Otworz plik
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </Reorder.Item>
   )
 }
 
@@ -2345,7 +2451,6 @@ function ProjectEditor({
     formStateFromProject(project),
   )
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
-  const [draggingMediaId, setDraggingMediaId] = useState<string | null>(null)
   const saveProject = useSaveProject()
   const uploadProjectMedia = useUploadProjectMedia()
   const removeProjectMedia = useRemoveProjectMedia()
@@ -2358,6 +2463,26 @@ function ProjectEditor({
       ),
     [project?.media],
   )
+  const projectMediaIds = useMemo(
+    () => projectMedia.map((media) => media.id),
+    [projectMedia],
+  )
+  const projectMediaOrderKey = projectMediaIds.join('|')
+  const [mediaOrderState, setMediaOrderState] = useState({
+    ids: projectMediaIds,
+    sourceKey: projectMediaOrderKey,
+  })
+  const orderedMediaIds =
+    mediaOrderState.sourceKey === projectMediaOrderKey
+      ? mediaOrderState.ids
+      : projectMediaIds
+  const orderedProjectMedia = useMemo(
+    () => orderItemsByIds(projectMedia, orderedMediaIds),
+    [orderedMediaIds, projectMedia],
+  )
+  const setNextOrderedMediaIds = (ids: string[]) => {
+    setMediaOrderState({ ids, sourceKey: projectMediaOrderKey })
+  }
 
   const updateField = <Field extends keyof ProjectFormState>(
     field: Field,
@@ -2452,53 +2577,16 @@ function ProjectEditor({
     }
   }
 
-  const handleMediaDragStart = (
-    event: DragEvent<HTMLDivElement>,
-    mediaId: string,
-  ) => {
-    if (updateProjectMediaOrder.isPending) {
-      event.preventDefault()
-      return
-    }
-
-    setDraggingMediaId(mediaId)
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', mediaId)
-  }
-
-  const handleMediaDragOver = (event: DragEvent<HTMLDivElement>) => {
-    if (!draggingMediaId || updateProjectMediaOrder.isPending) {
-      return
-    }
-
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-  }
-
-  const handleMediaDrop = async (
-    event: DragEvent<HTMLDivElement>,
-    targetMediaId: string,
-  ) => {
-    event.preventDefault()
-
-    const sourceMediaId =
-      draggingMediaId || event.dataTransfer.getData('text/plain')
-    const sourceIndex = projectMedia.findIndex(
-      (media) => media.id === sourceMediaId,
-    )
-    const targetIndex = projectMedia.findIndex(
-      (media) => media.id === targetMediaId,
-    )
-    const nextMediaOrder = reorderItems(projectMedia, sourceIndex, targetIndex)
-
-    setDraggingMediaId(null)
-
-    if (nextMediaOrder === projectMedia) {
+  const handleMediaDragEnd = async () => {
+    if (
+      updateProjectMediaOrder.isPending ||
+      haveSameOrder(projectMediaIds, orderedMediaIds)
+    ) {
       return
     }
 
     await updateMediaOrder(
-      nextMediaOrder,
+      orderedProjectMedia,
       'Kolejnosc mediow zapisana. Pierwsze media sa miniaturka projektu.',
     )
   }
@@ -3006,23 +3094,27 @@ function ProjectEditor({
           </div>
         ) : null}
 
-        {projectMedia.length ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {projectMedia.map((media, index) => (
-              <div
+        {orderedProjectMedia.length ? (
+          <Reorder.Group
+            as="div"
+            axis="y"
+            className="mt-4 grid gap-3 sm:grid-cols-2"
+            onReorder={setNextOrderedMediaIds}
+            values={orderedMediaIds}
+          >
+            {orderedProjectMedia.map((media, index) => (
+              <Reorder.Item
                 className={cn(
                   'rounded-md border bg-[color:var(--background)] p-3 transition-colors',
-                  draggingMediaId === media.id && 'opacity-50',
                   index === 0
                     ? 'border-cyan-300/50'
                     : 'border-[color:var(--border)]',
                 )}
-                draggable={!updateProjectMediaOrder.isPending}
+                drag={!updateProjectMediaOrder.isPending}
                 key={media.id}
-                onDragEnd={() => setDraggingMediaId(null)}
-                onDragOver={handleMediaDragOver}
-                onDragStart={(event) => handleMediaDragStart(event, media.id)}
-                onDrop={(event) => void handleMediaDrop(event, media.id)}
+                onDragEnd={() => void handleMediaDragEnd()}
+                value={media.id}
+                whileDrag={{ scale: 1.01, zIndex: 30 }}
               >
                 <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
                   {media.type === 'image' ? (
@@ -3072,9 +3164,9 @@ function ProjectEditor({
                 >
                   Usuń
                 </Button>
-              </div>
+              </Reorder.Item>
             ))}
-          </div>
+          </Reorder.Group>
         ) : null}
       </div>
     </form>
