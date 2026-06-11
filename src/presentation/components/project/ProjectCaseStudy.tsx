@@ -12,7 +12,11 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Project, ProjectMedia } from '@/domain/portfolio/entities'
+import type {
+  Project,
+  ProjectLink,
+  ProjectMedia,
+} from '@/domain/portfolio/entities'
 import { localizeProject } from '@/domain/portfolio/localizeProject'
 import { Badge } from '@/presentation/components/Badge'
 import { ButtonLink } from '@/presentation/components/Button'
@@ -122,6 +126,28 @@ const getProjectPlatform = (project: Project) => {
   return project.area === 'web' ? 'Web' : 'PC'
 }
 
+const isExternalUrl = (url: string) => /^https?:\/\//i.test(url)
+
+const getPrimaryWebProjectLink = (project: Project) =>
+  project.links.find(
+    (link) =>
+      isExternalUrl(link.url) && ['live', 'demo'].includes(link.type),
+  ) ?? project.links.find((link) => isExternalUrl(link.url))
+
+const getWebsitePreviewImageUrl = (url: string) =>
+  `https://image.thum.io/get/width/1200/crop/675/noanimate/${encodeURI(url)}`
+
+const getFaviconUrl = (url: string) =>
+  `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=64`
+
+const getHostname = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
 const getProjectLabels = (isEnglish: boolean) => ({
   about: isEnglish ? 'About the project' : 'O projekcie',
   achievements: isEnglish ? 'Key achievements' : 'Najważniejsze osiągnięcia',
@@ -141,6 +167,7 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
   const aboutParagraphs = getAboutParagraphs(localizedProject)
   const responsibilityItems = getResponsibilityItems(localizedProject)
   const achievementItems = getAchievementItems(localizedProject)
+  const primaryWebProjectLink = getPrimaryWebProjectLink(localizedProject)
   const projectFacts = [
     { label: labels.year, value: String(localizedProject.year) },
     { label: labels.duration, value: localizedProject.duration ?? '-' },
@@ -164,7 +191,13 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="min-w-0">
-          {localizedProject.media.length > 0 ? (
+          {localizedProject.area === 'web' ? (
+            <WebProjectPreview
+              isEnglish={isEnglish}
+              link={primaryWebProjectLink}
+              project={localizedProject}
+            />
+          ) : localizedProject.media.length > 0 ? (
             <ProjectMediaGallery
               isEnglish={isEnglish}
               media={localizedProject.media}
@@ -303,6 +336,92 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
         </div>
       </div>
     </article>
+  )
+}
+
+function WebProjectPreview({
+  isEnglish,
+  link,
+  project,
+}: {
+  isEnglish: boolean
+  link?: ProjectLink
+  project: Project
+}) {
+  const openLabel = isEnglish ? 'Open website' : 'Otwórz stronę'
+  const previewLabel = isEnglish ? 'Website preview' : 'Podgląd strony'
+
+  if (!link) {
+    return (
+      <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-8 text-sm text-[color:var(--muted)]">
+        {isEnglish
+          ? 'Add a live project link in the admin panel to show an automatic website preview here.'
+          : 'Dodaj link do strony w panelu administracyjnym, aby w tym miejscu pojawił się automatyczny podgląd.'}
+      </div>
+    )
+  }
+
+  const hostname = getHostname(link.url)
+
+  return (
+    <a
+      aria-label={`${openLabel}: ${project.title}`}
+      className="focus-ring group block overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] transition-colors hover:border-cyan-300/45"
+      href={link.url}
+      rel="noreferrer"
+      target="_blank"
+    >
+      <div className="relative aspect-video overflow-hidden bg-[color:var(--card)]">
+        <div className="technical-grid absolute inset-0 opacity-40" />
+        <img
+          alt={`${previewLabel}: ${project.title}`}
+          className="relative z-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+          decoding="async"
+          loading="eager"
+          onError={(event) => {
+            event.currentTarget.hidden = true
+          }}
+          src={getWebsitePreviewImageUrl(link.url)}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1120]/95 via-[#0b1120]/35 to-transparent" />
+        <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-md border border-white/15 bg-black/50 px-3 py-2 text-xs font-semibold text-white backdrop-blur">
+          <img
+            alt=""
+            className="size-5 shrink-0 rounded"
+            decoding="async"
+            loading="lazy"
+            src={getFaviconUrl(link.url)}
+          />
+          <span className="truncate">{hostname}</span>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase text-[color:var(--primary)]">
+            {previewLabel}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            {project.title}
+          </h2>
+          <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-slate-200">
+            {project.summary}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-[color:var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[color:var(--text)]">
+            {link.label || project.title}
+          </p>
+          <p className="mt-1 truncate text-xs text-[color:var(--muted)]">
+            {hostname}
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[color:var(--primary)]">
+          {openLabel}
+          <ExternalLink className="size-4" />
+        </span>
+      </div>
+    </a>
   )
 }
 
