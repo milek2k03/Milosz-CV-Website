@@ -134,8 +134,11 @@ const getPrimaryWebProjectLink = (project: Project) =>
       isExternalUrl(link.url) && ['live', 'demo'].includes(link.type),
   ) ?? project.links.find((link) => isExternalUrl(link.url))
 
-const getWebsitePreviewImageUrl = (url: string) =>
-  `https://image.thum.io/get/width/1200/crop/675/noanimate/${encodeURI(url)}`
+const getWebsitePreviewImageUrls = (url: string) => [
+  `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=1200`,
+  `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`,
+  `https://image.thum.io/get/width/1200/crop/675/noanimate/${encodeURI(url)}`,
+]
 
 const getFaviconUrl = (url: string) =>
   `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=64`
@@ -194,6 +197,7 @@ export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
           {localizedProject.area === 'web' ? (
             <WebProjectPreview
               isEnglish={isEnglish}
+              key={primaryWebProjectLink?.url ?? localizedProject.id}
               link={primaryWebProjectLink}
               project={localizedProject}
             />
@@ -350,6 +354,7 @@ function WebProjectPreview({
 }) {
   const openLabel = isEnglish ? 'Open website' : 'Otwórz stronę'
   const previewLabel = isEnglish ? 'Website preview' : 'Podgląd strony'
+  const [previewImageIndex, setPreviewImageIndex] = useState(0)
 
   if (!link) {
     return (
@@ -362,6 +367,8 @@ function WebProjectPreview({
   }
 
   const hostname = getHostname(link.url)
+  const previewImageUrls = getWebsitePreviewImageUrls(link.url)
+  const previewImageUrl = previewImageUrls[previewImageIndex]
 
   return (
     <a
@@ -373,16 +380,18 @@ function WebProjectPreview({
     >
       <div className="relative aspect-video overflow-hidden bg-[color:var(--card)]">
         <div className="technical-grid absolute inset-0 opacity-40" />
-        <img
-          alt={`${previewLabel}: ${project.title}`}
-          className="relative z-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-          decoding="async"
-          loading="eager"
-          onError={(event) => {
-            event.currentTarget.hidden = true
-          }}
-          src={getWebsitePreviewImageUrl(link.url)}
-        />
+        {previewImageUrl ? (
+          <img
+            alt={`${previewLabel}: ${project.title}`}
+            className="relative z-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+            decoding="async"
+            loading="eager"
+            onError={() => {
+              setPreviewImageIndex((currentIndex) => currentIndex + 1)
+            }}
+            src={previewImageUrl}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b1120]/95 via-[#0b1120]/35 to-transparent" />
         <div className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-md border border-white/15 bg-black/50 px-3 py-2 text-xs font-semibold text-white backdrop-blur">
           <img
