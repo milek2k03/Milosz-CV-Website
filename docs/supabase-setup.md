@@ -86,7 +86,7 @@ Set secrets:
 ```bash
 npx supabase secrets set RESEND_API_KEY=your-resend-api-key
 npx supabase secrets set CONTACT_TO_EMAIL=your.email@example.com
-npx supabase secrets set "CONTACT_FROM_EMAIL=Portfolio <noreply@your-domain.com>"
+npx supabase secrets set "CONTACT_FROM_EMAIL=Miłosz Czech <contact@your-domain.com>"
 npx supabase secrets set CONTACT_ALLOWED_ORIGIN=https://your-domain.com
 ```
 

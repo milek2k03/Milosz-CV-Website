@@ -49,7 +49,7 @@ export class ContactEmailRepository implements ContactRepository {
     }
 
     const mailto = new URL(`mailto:${appEnv.contactEmail ?? 'milosz.czech1803@gmail.com'}`)
-    mailto.searchParams.set('subject', `[Portfolio] ${input.subject}`)
+    mailto.searchParams.set('subject', `[Miłosz Czech] ${input.subject}`)
     mailto.searchParams.set('body', buildMailtoBody(input))
     window.location.href = mailto.toString()
 

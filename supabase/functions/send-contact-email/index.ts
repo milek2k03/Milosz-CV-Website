@@ -15,6 +15,8 @@ interface ContactPayload {
 }
 
 const allowedOrigin = Deno.env.get('CONTACT_ALLOWED_ORIGIN') ?? '*'
+const brandName = 'Mi\u0142osz Czech'
+const defaultFromEmail = `${brandName} <contact@miloszczechportfolio.pl>`
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': allowedOrigin,
@@ -186,8 +188,7 @@ serve(async (request) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     const toEmail = Deno.env.get('CONTACT_TO_EMAIL')
-    const fromEmail =
-      Deno.env.get('CONTACT_FROM_EMAIL') ?? 'Portfolio <onboarding@resend.dev>'
+    const fromEmail = Deno.env.get('CONTACT_FROM_EMAIL') ?? defaultFromEmail
 
     if (!supabaseUrl || !serviceRoleKey || !resendApiKey || !toEmail) {
       return new Response('Contact function is not configured.', {
@@ -226,7 +227,7 @@ serve(async (request) => {
       from: fromEmail,
       to: [toEmail],
       reply_to: message.email,
-      subject: `[Portfolio] ${message.subject}`,
+      subject: `[${brandName}] ${message.subject}`,
       text: [
         `Name: ${message.name}`,
         `Email: ${message.email}`,
@@ -239,8 +240,8 @@ serve(async (request) => {
         .filter(Boolean)
         .join('\n'),
       html: buildEmailShell({
-        preheader: `Nowe zapytanie z portfolio: ${escapedSubject}`,
-        eyebrow: 'Portfolio contact',
+        preheader: `Nowe zapytanie ze strony ${brandName}: ${escapedSubject}`,
+        eyebrow: `Kontakt - ${brandName}`,
         title: 'Nowe zapytanie z formularza',
         body: `
           <p style="margin:0 0 18px;color:#CBD5E1;font-size:15px;line-height:24px;">

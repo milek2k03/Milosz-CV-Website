@@ -506,5 +506,5 @@ on conflict (id) do nothing;
 -- Contact Edge Function environment:
 -- RESEND_API_KEY=<resend_api_key>
 -- CONTACT_TO_EMAIL=<target_inbox>
--- CONTACT_FROM_EMAIL=Portfolio <noreply@your-domain.com>
+-- CONTACT_FROM_EMAIL=Miłosz Czech <contact@your-domain.com>
 -- CONTACT_ALLOWED_ORIGIN=https://your-domain.com
