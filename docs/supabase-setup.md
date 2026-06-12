@@ -88,6 +88,7 @@ npx supabase secrets set RESEND_API_KEY=your-resend-api-key
 npx supabase secrets set CONTACT_TO_EMAIL=your.email@example.com
 npx supabase secrets set "CONTACT_FROM_EMAIL=Miłosz Czech <contact@your-domain.com>"
 npx supabase secrets set CONTACT_ALLOWED_ORIGIN=https://your-domain.com
+npx supabase secrets set CONTACT_SITE_URL=https://your-domain.com
 ```
 
 For local development use:
