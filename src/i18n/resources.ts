@@ -26,20 +26,20 @@ export const resources = {
       home: {
         heroTitle: 'O mnie',
         seoDescription:
-          'Portfolio Miłosza Czecha: projekty Unity, VR i web. Rola w projekcie, zakres prac, technologie i wybrane materiały.',
+          'Portfolio Miłosza Czecha: projekty Unity, VR i web z opisem zakresu prac, decyzji technicznych oraz efektów wdrożenia.',
         heroDescription:
-          'Tworzę gry i aplikacje w Unity, rozwiązania VR oraz strony webowe. Piszę kod tak, żeby projekt dało się rozwijać po oddaniu: stabilnie, czytelnie i bez zgadywania, co autor miał na myśli.',
+          'Projektuję i wdrażam aplikacje Unity, rozwiązania VR oraz projekty webowe. Stawiam na stabilność, czytelną architekturę i realną użyteczność produktu.',
         currentScope: 'Na czym pracuję',
         workflowItems: [
-          'Unity i C#: gameplay, narzędzia edytorowe, integracje i porządek w kodzie',
-          'VR: interakcje pod kontrolery, testy na sprzęcie i pilnowanie płynności sceny',
-          'Web: strony i panele w React/TypeScript, Supabase, PostgreSQL i wdrożenia na Vercel',
+          'Unity i C#: systemy gameplayowe, narzędzia edytorowe, architektura oraz optymalizacja pod konkretne platformy',
+          'VR: intuicyjne interakcje, komfort użytkownika, stabilny framerate i testowanie scen na docelowym sprzęcie',
+          'Web: szybkie strony i aplikacje React/TypeScript z Supabase, PostgreSQL oraz panelem administracyjnym',
         ],
         projects: {
           eyebrow: 'Wybrane realizacje',
-          title: 'Wybrane projekty',
+          title: 'Projekty z kontekstem technicznym',
           description:
-            'W projektach pokazuję swoją rolę, konkretne zadania, użyte technologie i materiały z pracy. Bez wykresów umiejętności i pustych deklaracji.',
+            'Każdy projekt opisuję od strony decyzji i odpowiedzialności: jaki był cel, co trzeba było rozwiązać, za które elementy odpowiadałem i jakie technologie miały znaczenie.',
           unityHeading: 'Unity / VR',
           webHeading: 'Strony internetowe',
           showMore: 'Zobacz więcej',
@@ -49,52 +49,52 @@ export const resources = {
           eyebrow: 'Współpraca',
           title: 'Zespoły i marki, z którymi pracowałem',
           description:
-            'Firmy i instytucje, przy których projektach pracowałem lub dla których przygotowywałem rozwiązania.',
+            'Przegląd współprac i środowisk, w których dostarczałem rozwiązania Unity, VR oraz webowe.',
         },
         areas: {
           eyebrow: 'Obszary',
-          title: 'Dwa typy projektów',
+          title: 'Unity / VR i web bez mieszania tematów',
           description:
-            'Unity/VR i strony webowe trzymam osobno, żeby szybciej znaleźć właściwy rodzaj pracy.',
+            'Portfolio jest podzielone na dwa obszary, żeby łatwiej przejrzeć projekty zgodne z konkretną potrzebą: prace silnikowe w Unity oraz realizacje webowe.',
           unityTitle: 'Unity / VR',
           unityDescription:
-            'Gry, aplikacje Unity, prototypy VR, interakcje, profilowanie i przygotowanie buildów pod sprzęt.',
+            'Systemy gameplayowe, aplikacje Unity, prototypy VR, interakcje, profilowanie i optymalizacja pod docelowy sprzęt.',
           unityButton: 'Zobacz projekty Unity',
           webTitle: 'Strony internetowe',
           webDescription:
-            'Strony i aplikacje w React/TypeScript, panele administracyjne, Supabase oraz wdrożenia na Vercel.',
+            'Strony i aplikacje webowe w React/TypeScript, panele administracyjne, integracje Supabase oraz wdrożenia na Vercel.',
           webButton: 'Przejdź do portfolio web',
         },
         areaPages: {
           unityTitle: 'Portfolio Unity / VR',
           unityDescription:
-            'Projekty Unity i VR: gameplay, interakcje, optymalizacja, buildy i praca z docelowym sprzętem.',
+            'Wybrane projekty Unity i VR: od prototypowania mechanik po architekturę systemów, optymalizację i przygotowanie buildów.',
           webTitle: 'Portfolio stron internetowych',
           webDescription:
-            'Strony i panele webowe: React, TypeScript, Supabase, szybkie ładowanie i prosta edycja treści.',
+            'Realizacje webowe skupione na czytelnej architekturze, szybkim działaniu, integracjach z backendem i wygodnym zarządzaniu treścią.',
           empty: 'Brak opublikowanych projektów w tym obszarze.',
         },
         stack: {
           eyebrow: 'Technicznie',
-          title: 'Jak pracuję',
+          title: 'Jak podchodzę do realizacji',
           description:
-            'Najpierw ustalam cel, ograniczenia i definicję gotowego efektu. Potem wybieram rozwiązanie, które można szybko sprawdzić i spokojnie rozwijać.',
+            'Zaczynam od ustalenia celu i ograniczeń, potem dobieram architekturę, która pozwala szybko dowieźć działający produkt i nadal go rozwijać po wdrożeniu.',
           cards: [
             {
               title: 'Unity / VR',
-              text: 'Mechaniki, interakcje VR, OpenXR, profilowanie scen i buildy testowane na docelowych urządzeniach.',
+              text: 'Mechaniki, systemy interakcji, OpenXR, profilowanie scen i buildy przygotowane pod docelowe urządzenia.',
             },
             {
               title: 'Software',
-              text: 'React i TypeScript, komponenty, integracje API oraz widoki przygotowane pod realne użycie, nie makietę.',
+              text: 'Front-endy w React i TypeScript, architektura komponentów, integracje API oraz przepływy użytkownika gotowe do codziennej pracy.',
             },
             {
               title: 'Backend / Data',
-              text: 'PostgreSQL, Supabase Storage, RLS i warstwa dostępu do danych oddzielona od interfejsu.',
+              text: 'Modele danych, PostgreSQL, Supabase Storage, RLS i warstwy repozytoriów oddzielone od interfejsu.',
             },
             {
               title: 'Delivery',
-              text: 'Krótki feedback loop, czytelne commity i kod, który można przejąć bez odkopywania intencji.',
+              text: 'Czytelne repozytorium, kontrola zakresu, szybkie iteracje i kod, który można przekazać dalej bez zgadywania intencji.',
             },
           ],
         },
@@ -102,7 +102,7 @@ export const resources = {
           eyebrow: 'Kontakt',
           title: 'Porozmawiajmy o projekcie',
           description:
-            'Napisz krótko, co trzeba zbudować, na jakim etapie jest projekt i gdzie mogę zobaczyć materiały. Odpowiem konkretnie.',
+            'Napisz, czego potrzebujesz, jaki jest etap projektu i kiedy chcesz ruszyć. Odpowiem z konkretnymi pytaniami albo propozycją kolejnych kroków.',
         },
       },
       contactForm: {
@@ -111,7 +111,7 @@ export const resources = {
         email: 'Email',
         message: 'Wiadomość',
         messagePlaceholder:
-          'Co trzeba zbudować, na kiedy i gdzie mogę zobaczyć materiały lub build.',
+          'Krótki opis projektu, oczekiwany zakres, termin i linki do materiałów.',
         name: 'Imię i nazwisko',
         send: 'Wyślij wiadomość',
         sending: 'Wysyłanie...',
@@ -173,20 +173,20 @@ export const resources = {
       home: {
         heroTitle: 'About me',
         seoDescription:
-          'Miłosz Czech portfolio: Unity, VR and web projects with role, scope, technologies and selected media.',
+          'Miłosz Czech portfolio: Unity, VR and web projects with scope, technical decisions and delivery context.',
         heroDescription:
-          'I build Unity games and applications, VR experiences and web projects. I care about code that stays readable after handoff: stable builds, clear structure and fewer surprises for the next developer.',
+          'I design and build Unity applications, VR solutions and web projects with a focus on stability, readable architecture and practical product value.',
         currentScope: 'Current work',
         workflowItems: [
-          'Unity and C#: gameplay, editor tools, integrations and clean project structure',
-          'VR: controller interactions, hardware testing and keeping scenes smooth',
-          'Web: React/TypeScript sites and admin panels with Supabase, PostgreSQL and Vercel',
+          'Unity and C#: gameplay systems, editor tooling, architecture and platform-focused optimization',
+          'VR: intuitive interactions, user comfort, stable framerate and testing on target hardware',
+          'Web: fast React/TypeScript applications with Supabase, PostgreSQL and admin workflows',
         ],
         projects: {
           eyebrow: 'Selected work',
-          title: 'Selected projects',
+          title: 'Projects with technical context',
           description:
-            'The project cards focus on my role, the work I handled, the technologies used and real media from the project. No skill charts, no filler.',
+            'Each project is presented through decisions and responsibility: the goal, the problem to solve, my part of the work and the technologies that mattered.',
           unityHeading: 'Unity / VR',
           webHeading: 'Websites',
           showMore: 'Show more',
@@ -196,52 +196,52 @@ export const resources = {
           eyebrow: 'Collaboration',
           title: 'Teams and brands I have worked with',
           description:
-            'Companies and institutions whose projects I worked on or built software for.',
+            'A short overview of teams and environments where I delivered Unity, VR and web solutions.',
         },
         areas: {
           eyebrow: 'Areas',
-          title: 'Two project tracks',
+          title: 'Unity / VR and web kept separate',
           description:
-            'Unity/VR and web work are kept separate so the relevant projects are easier to find.',
+            'The portfolio is split into two areas so you can review the work that matches your need: engine-based Unity projects and web delivery.',
           unityTitle: 'Unity / VR',
           unityDescription:
-            'Games, Unity applications, VR prototypes, interactions, profiling and builds prepared for real devices.',
+            'Gameplay systems, Unity applications, VR prototypes, interactions, profiling and optimization for target hardware.',
           unityButton: 'View Unity projects',
           webTitle: 'Websites',
           webDescription:
-            'React/TypeScript websites and applications, admin panels, Supabase and Vercel deployments.',
+            'React/TypeScript websites and applications, admin panels, Supabase integrations and Vercel deployments.',
           webButton: 'Open web portfolio',
         },
         areaPages: {
           unityTitle: 'Unity / VR Portfolio',
           unityDescription:
-            'Unity and VR projects: gameplay, interactions, optimization, builds and testing on target hardware.',
+            'Selected Unity and VR projects: from gameplay prototyping to system architecture, optimization and production builds.',
           webTitle: 'Website Portfolio',
           webDescription:
-            'Websites and admin panels: React, TypeScript, Supabase, fast loading and simple content editing.',
+            'Web projects focused on readable architecture, fast loading, backend integrations and comfortable content management.',
           empty: 'There are no published projects in this area yet.',
         },
         stack: {
           eyebrow: 'Technical approach',
-          title: 'How I work',
+          title: 'How I deliver projects',
           description:
-            'I start by defining the goal, constraints and what “done” means. Then I choose a solution that can be tested quickly and maintained calmly.',
+            'I start with goals and constraints, then choose an architecture that helps ship a working product quickly and keep it maintainable after release.',
           cards: [
             {
               title: 'Unity / VR',
-              text: 'Gameplay mechanics, VR interactions, OpenXR, scene profiling and builds tested on target devices.',
+              text: 'Gameplay mechanics, interaction systems, OpenXR, scene profiling and builds prepared for target devices.',
             },
             {
               title: 'Software',
-              text: 'React and TypeScript, components, API integrations and screens prepared for real use, not just mockups.',
+              text: 'React and TypeScript front ends, component architecture, API integrations and user flows ready for daily use.',
             },
             {
               title: 'Backend / Data',
-              text: 'PostgreSQL, Supabase Storage, RLS and data access kept separate from the interface.',
+              text: 'Data models, PostgreSQL, Supabase Storage, RLS and repository layers separated from the interface.',
             },
             {
               title: 'Delivery',
-              text: 'Short feedback loops, clear commits and code that can be picked up without digging for intent.',
+              text: 'Readable repositories, controlled scope, fast iterations and code that can be handed over without guessing intent.',
             },
           ],
         },
@@ -249,7 +249,7 @@ export const resources = {
           eyebrow: 'Contact',
           title: 'Let’s talk about the project',
           description:
-            'Send a short note about what needs to be built, where the project stands and where I can see the materials. I will reply with specifics.',
+            'Tell me what you need, where the project stands and when you want to start. I will reply with concrete questions or a suggested next step.',
         },
       },
       contactForm: {
@@ -258,7 +258,7 @@ export const resources = {
         email: 'Email',
         message: 'Message',
         messagePlaceholder:
-          'What needs to be built, the rough timeline and links to materials or a build.',
+          'Short project description, expected scope, timeline and links to materials.',
         name: 'Full name',
         send: 'Send message',
         sending: 'Sending...',
