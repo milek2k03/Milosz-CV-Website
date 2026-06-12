@@ -17,10 +17,6 @@ interface ContactPayload {
 const allowedOrigin = Deno.env.get('CONTACT_ALLOWED_ORIGIN') ?? '*'
 const brandName = 'Mi\u0142osz Czech'
 const defaultFromEmail = `${brandName} <contact@miloszczechportfolio.pl>`
-const publicSiteUrl = (
-  Deno.env.get('CONTACT_SITE_URL') ?? 'https://miloszczechportfolio.pl'
-).replace(/\/$/, '')
-const brandImageUrl = `${publicSiteUrl}/unnamed.jpg`
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': allowedOrigin,
@@ -95,17 +91,8 @@ const buildEmailShell = ({
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;border-collapse:collapse;">
               <tr>
                 <td style="padding:22px 0 18px;">
-                  <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                    <tr>
-                      <td style="padding:0 16px 0 0;vertical-align:middle;">
-                        <img src="${brandImageUrl}" width="64" height="64" alt="${brandName}" style="display:block;width:64px;height:64px;border-radius:14px;border:1px solid #253047;background:#0B1120;" />
-                      </td>
-                      <td style="vertical-align:middle;">
-                        <div style="font-size:12px;line-height:18px;letter-spacing:.08em;text-transform:uppercase;color:#38BDF8;font-weight:700;">${eyebrow}</div>
-                        <h1 style="margin:8px 0 0;font-size:26px;line-height:34px;color:#F8FAFC;font-weight:750;">${title}</h1>
-                      </td>
-                    </tr>
-                  </table>
+                  <div style="font-size:12px;line-height:18px;letter-spacing:.08em;text-transform:uppercase;color:#38BDF8;font-weight:700;">${eyebrow}</div>
+                  <h1 style="margin:8px 0 0;font-size:26px;line-height:34px;color:#F8FAFC;font-weight:750;">${title}</h1>
                 </td>
               </tr>
               <tr>

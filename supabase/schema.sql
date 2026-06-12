@@ -508,4 +508,3 @@ on conflict (id) do nothing;
 -- CONTACT_TO_EMAIL=<target_inbox>
 -- CONTACT_FROM_EMAIL=Miłosz Czech <contact@your-domain.com>
 -- CONTACT_ALLOWED_ORIGIN=https://your-domain.com
--- CONTACT_SITE_URL=https://your-domain.com
