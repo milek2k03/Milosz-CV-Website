@@ -113,6 +113,9 @@ export const resources = {
         messagePlaceholder:
           'Co trzeba zbudować, na kiedy i gdzie mogę zobaczyć materiały lub build.',
         name: 'Imię i nazwisko',
+        privacyLabel: 'Informacja o danych osobowych',
+        privacyText:
+          'Wysyłając formularz, przekazujesz dane podane w formularzu w celu obsługi zapytania i udzielenia odpowiedzi. Administratorem danych jest Miłosz Czech. Dane nie są wykorzystywane do marketingu.',
         send: 'Wyślij wiadomość',
         sending: 'Wysyłanie...',
         subject: 'Temat',
@@ -125,6 +128,8 @@ export const resources = {
           email: 'Podaj poprawny adres email.',
           message: 'Wiadomość powinna mieć co najmniej 20 znaków.',
           name: 'Podaj imię i nazwisko.',
+          privacy:
+            'Potwierdź zapoznanie się z informacją o przetwarzaniu danych.',
           subject: 'Podaj temat wiadomości.',
         },
       },
@@ -260,6 +265,9 @@ export const resources = {
         messagePlaceholder:
           'What needs to be built, the rough timeline and links to materials or a build.',
         name: 'Full name',
+        privacyLabel: 'Personal data notice',
+        privacyText:
+          'By sending the form, you provide the data entered in it so I can handle your inquiry and reply. The data controller is Miłosz Czech. The data is not used for marketing.',
         send: 'Send message',
         sending: 'Sending...',
         subject: 'Subject',
@@ -271,6 +279,7 @@ export const resources = {
           email: 'Enter a valid email address.',
           message: 'The message should be at least 20 characters long.',
           name: 'Enter your full name.',
+          privacy: 'Confirm that you have read the personal data notice.',
           subject: 'Enter a message subject.',
         },
       },

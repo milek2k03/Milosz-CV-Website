@@ -15,6 +15,7 @@ interface ContactFormState {
   subject: string
   message: string
   website: string
+  privacyAccepted: boolean
 }
 
 const initialState: ContactFormState = {
@@ -24,6 +25,7 @@ const initialState: ContactFormState = {
   subject: '',
   message: '',
   website: '',
+  privacyAccepted: false,
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -57,6 +59,10 @@ export function ContactForm() {
 
     if (form.message.trim().length < 20) {
       return t('contactForm.validation.message')
+    }
+
+    if (!form.privacyAccepted) {
+      return t('contactForm.validation.privacy')
     }
 
     return null
@@ -172,6 +178,25 @@ export function ContactForm() {
             tabIndex={-1}
             value={form.website}
           />
+        </label>
+
+        <label className="flex gap-3 rounded-md border border-[color:var(--border)] bg-[rgba(11,17,32,0.55)] p-3 text-sm leading-6 text-slate-300">
+          <input
+            checked={form.privacyAccepted}
+            className="mt-1 size-4 shrink-0 accent-[color:var(--primary)]"
+            onChange={(event) =>
+              updateField('privacyAccepted', event.target.checked)
+            }
+            type="checkbox"
+          />
+          <span>
+            <span className="block font-medium text-[color:var(--text)]">
+              {t('contactForm.privacyLabel')}
+            </span>
+            <span className="mt-1 block text-[color:var(--muted)]">
+              {t('contactForm.privacyText')}
+            </span>
+          </span>
         </label>
 
         {error || success ? (
