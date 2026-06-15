@@ -108,6 +108,9 @@ export const resources = {
       contactForm: {
         company: 'Firma / projekt',
         companyPlaceholder: 'Opcjonalnie',
+        cookiesLabel: 'Pliki cookies i statystyki',
+        cookiesText:
+          'Strona może używać niezbędnych plików cookies lub podobnych technologii do prawidłowego działania serwisu, bezpieczeństwa i podstawowych statystyk odwiedzin. Nie używam cookies do profilowania ani marketingu.',
         email: 'Email',
         message: 'Wiadomość',
         messagePlaceholder:
@@ -260,6 +263,9 @@ export const resources = {
       contactForm: {
         company: 'Company / project',
         companyPlaceholder: 'Optional',
+        cookiesLabel: 'Cookies and statistics',
+        cookiesText:
+          'This website may use necessary cookies or similar technologies for proper operation, security and basic visit statistics. I do not use cookies for profiling or marketing.',
         email: 'Email',
         message: 'Message',
         messagePlaceholder:

@@ -199,6 +199,15 @@ export function ContactForm() {
           </span>
         </label>
 
+        <div className="rounded-md border border-[color:var(--border)] bg-[rgba(11,17,32,0.35)] p-3 text-sm leading-6 text-slate-300">
+          <p className="font-medium text-[color:var(--text)]">
+            {t('contactForm.cookiesLabel')}
+          </p>
+          <p className="mt-1 text-[color:var(--muted)]">
+            {t('contactForm.cookiesText')}
+          </p>
+        </div>
+
         {error || success ? (
           <p
             className={cn(
