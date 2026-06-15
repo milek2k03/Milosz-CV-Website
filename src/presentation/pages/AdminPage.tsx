@@ -113,7 +113,7 @@ const adminNavItems = [
   {
     id: 'projects',
     label: 'Projekty',
-    description: 'Case studies i tłumaczenia',
+    description: 'Projekty i tłumaczenia',
     icon: FolderKanban,
   },
   {
@@ -965,7 +965,7 @@ function AdminSidebar({
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Panel administratora</h2>
         <p className="mt-3 leading-7 text-slate-300">
-          Zarządzanie treścią, projektami, mediami i konfiguracją portfolio.
+          Edycja treści strony, projektów, mediów, CV i podstawowej konfiguracji.
         </p>
       </div>
 
@@ -1050,8 +1050,8 @@ function AnalyticsPanel() {
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Ruch na stronie</h2>
             <p className="mt-3 max-w-3xl leading-7 text-slate-300">
-              Podglad wejsc na portfolio z podzialem na dzien, tydzien,
-              miesiac i rok. Panel nie zlicza odwiedzin na sciezce /admin.
+              Liczba wejsc i wyswietlen w podziale na dzien, tydzien, miesiac
+              i rok. Panel nie zlicza odwiedzin na sciezce /admin.
             </p>
           </div>
           <Button
@@ -1313,7 +1313,7 @@ function ProjectsManager({
           <div>
             <h2 className="text-2xl font-semibold">Projekty</h2>
             <p className="mt-2 text-sm text-[color:var(--muted)]">
-              Case studies, tłumaczenia, technologie, linki oraz media.
+              Projekty, tłumaczenia, technologie, linki oraz media.
             </p>
           </div>
           <Button icon={<Plus className="size-4" />} onClick={onNewProject}>
@@ -2607,7 +2607,7 @@ function ProjectEditor({
             {project ? 'Edycja projektu' : 'Nowy projekt'}
           </h2>
           <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Case study z problemem, zakresem prac, technologiami i mediami.
+            Opis roli, zadan, osiagniec, technologii i mediow projektu.
           </p>
         </div>
         <Button
@@ -2749,7 +2749,7 @@ function ProjectEditor({
         <div className="mb-4">
           <h3 className="font-semibold">Ustawienia projektu</h3>
           <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Wspolne dane techniczne, publikacja, technologie i linki projektu.
+            Dane wspolne dla obu jezykow: publikacja, technologie, linki i obszar projektu.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
