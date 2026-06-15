@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import type { Project } from '@/domain/portfolio/entities'
@@ -28,7 +28,7 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
     >
       <article className="flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] transition-colors group-hover:border-cyan-300/35 group-hover:bg-[rgba(26,34,51,0.86)]">
         <div className="p-3 pb-0">
-          <div className="project-card-image overflow-hidden rounded-md bg-[color:var(--card)]">
+          <div className="project-card-image relative overflow-hidden rounded-md bg-[color:var(--card)]">
             {cover ? (
               <ProjectMediaView
                 media={cover}
@@ -40,6 +40,15 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
                 Media projektu
               </div>
             )}
+            {localizedProject.featured ? (
+              <span
+                aria-label="Projekt wyróżniony"
+                className="absolute right-3 top-3 grid size-8 place-items-center rounded-full border border-amber-200/35 bg-black/55 text-amber-200 shadow-sm backdrop-blur"
+                title="Projekt wyróżniony"
+              >
+                <Star className="size-4 fill-current" />
+              </span>
+            ) : null}
           </div>
         </div>
 
