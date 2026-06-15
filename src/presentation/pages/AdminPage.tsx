@@ -343,7 +343,7 @@ const projectFieldLabels: Record<string, string> = {
   summary: 'Krótki opis',
   technologies: 'Technologie',
   title: 'Tytuł',
-  year: 'Rok',
+  year: 'Okres realizacji',
 }
 
 const translationFieldLabels: Record<string, string> = {
@@ -2828,7 +2828,7 @@ function ProjectEditor({
               value={state.slug}
             />
           </Field>
-          <Field label="Rok">
+          <Field label="Okres realizacji">
             <input
               className="form-field"
               min="2000"
@@ -2910,7 +2910,7 @@ function ProjectEditor({
             value={state.role}
           />
         </Field>
-        <Field label="Rok">
+        <Field label="Okres realizacji">
           <input
             className="form-field"
             min="2000"

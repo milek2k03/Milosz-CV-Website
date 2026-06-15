@@ -150,7 +150,7 @@ const getProjectLabels = (isEnglish: boolean) => ({
   role: isEnglish ? 'My role' : 'Moja rola',
   platform: isEnglish ? 'Platform' : 'Platforma',
   whatIDid: isEnglish ? 'What I worked on' : 'Czym się zajmowałem',
-  year: isEnglish ? 'Year' : 'Rok',
+  year: isEnglish ? 'Project period' : 'Okres realizacji',
 })
 
 export function ProjectCaseStudy({ project }: ProjectCaseStudyProps) {
