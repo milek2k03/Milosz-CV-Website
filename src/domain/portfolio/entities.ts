@@ -39,7 +39,7 @@ export interface Project {
   scope: string[]
   role: string
   duration?: string
-  year: number
+  year: string
   area: ProjectArea
   status: ProjectStatus
   featured: boolean
@@ -78,7 +78,7 @@ export interface ProjectUpsertInput {
   scope: string[]
   role: string
   duration?: string
-  year: number
+  year: string
   area: ProjectArea
   status: ProjectStatus
   featured: boolean

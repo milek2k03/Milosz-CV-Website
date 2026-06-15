@@ -31,7 +31,7 @@ create table if not exists public.projects (
   scope text[] not null default '{}',
   role text not null,
   duration text,
-  year integer not null,
+  year text not null,
   area text not null default 'unity' check (area in ('unity', 'web')),
   status text not null default 'draft' check (status in ('draft', 'published')),
   featured boolean not null default true,

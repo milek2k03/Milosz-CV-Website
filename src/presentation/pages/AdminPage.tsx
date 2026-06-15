@@ -176,7 +176,11 @@ const projectFormSchema = z.object({
   scope: z.array(z.string().min(1)).min(1, 'dodaj przynajmniej jeden punkt zakresu'),
   role: z.string().min(2, 'minimum 2 znaki'),
   duration: z.string().optional(),
-  year: z.number().int().min(2000, 'rok nie może być wcześniejszy niż 2000').max(2100, 'rok nie może być późniejszy niż 2100'),
+  year: z
+    .string()
+    .trim()
+    .min(4, 'podaj okres realizacji')
+    .max(32, 'okres realizacji jest za długi'),
   area: projectAreaSchema,
   status: projectStatusSchema,
   featured: z.boolean(),
@@ -554,7 +558,7 @@ const formValuesFromState = (state: ProjectFormState): ProjectUpsertInput => {
     scope: splitLineList(state.scopeText),
     role: state.role,
     duration: state.duration.trim() || undefined,
-    year: Number(state.year),
+    year: state.year.trim(),
     area: state.area,
     status: state.status,
     featured: state.featured,
@@ -2831,10 +2835,9 @@ function ProjectEditor({
           <Field label="Okres realizacji">
             <input
               className="form-field"
-              min="2000"
               onChange={(event) => updateField('year', event.target.value)}
+              placeholder="np. 2025-2026"
               required
-              type="number"
               value={state.year}
             />
           </Field>
@@ -2913,10 +2916,9 @@ function ProjectEditor({
         <Field label="Okres realizacji">
           <input
             className="form-field"
-            min="2000"
             onChange={(event) => updateField('year', event.target.value)}
+            placeholder="np. 2025-2026"
             required
-            type="number"
             value={state.year}
           />
         </Field>

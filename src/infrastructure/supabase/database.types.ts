@@ -18,7 +18,7 @@ type ProjectRow = {
   scope: string[]
   role: string
   duration: string | null
-  year: number
+  year: string
   area: 'unity' | 'web'
   status: 'draft' | 'published'
   featured: boolean
@@ -40,7 +40,7 @@ type ProjectInsert = {
   scope?: string[]
   role: string
   duration?: string | null
-  year: number
+  year: string
   area?: 'unity' | 'web'
   status?: 'draft' | 'published'
   featured?: boolean
