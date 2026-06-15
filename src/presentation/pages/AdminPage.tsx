@@ -66,7 +66,6 @@ import type {
   SiteStackCardContent,
 } from '@/domain/portfolio/entities'
 import { Button } from '@/presentation/components/Button'
-import { OrientationAwareImageFrame } from '@/presentation/components/project/ProjectMediaView'
 import {
   useCvDocument,
   usePortfolioSettings,
@@ -2462,41 +2461,39 @@ function ProjectMediaAdminPreview({
 
   if (media.type === 'image') {
     return (
-      <OrientationAwareImageFrame
-        alt={media.alt}
-        className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]"
-        imageClassName="object-contain"
-        landscapeClassName="aspect-video w-full"
-        loading="lazy"
-        portraitClassName="mx-auto aspect-[9/16] h-72 max-w-full"
-        src={media.url}
-      >
+      <div className="relative aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+        <img
+          alt={media.alt}
+          className="size-full object-contain"
+          decoding="async"
+          loading="lazy"
+          src={media.url}
+        />
         {coverBadge}
-      </OrientationAwareImageFrame>
+      </div>
     )
   }
 
   if (media.posterUrl) {
     return (
-      <OrientationAwareImageFrame
-        alt={media.alt}
-        className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]"
-        imageClassName="object-contain"
-        landscapeClassName="aspect-video w-full"
-        loading="lazy"
-        portraitClassName="mx-auto aspect-[9/16] h-72 max-w-full"
-        src={media.posterUrl}
-      >
+      <div className="relative aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+        <img
+          alt={media.alt}
+          className="size-full object-contain"
+          decoding="async"
+          loading="lazy"
+          src={media.posterUrl}
+        />
         {coverBadge}
         {videoBadge}
-      </OrientationAwareImageFrame>
+      </div>
     )
   }
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+    <div className="relative aspect-video overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
       <video
-        className="aspect-video w-full object-contain"
+        className="size-full object-contain"
         controls
         muted
         preload="metadata"
