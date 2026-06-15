@@ -82,19 +82,19 @@ export const resources = {
           cards: [
             {
               title: 'Unity / VR',
-              text: 'Mechaniki, interakcje VR, OpenXR, profilowanie scen i buildy testowane na docelowych urządzeniach.',
+              text: 'Mechaniki rozgrywki, interakcje XR, OpenXR, optymalizacja wydajności oraz testy na docelowych urządzeniach VR.',
             },
             {
               title: 'Software',
-              text: 'React i TypeScript, komponenty, integracje API oraz widoki przygotowane pod realne użycie, nie makietę.',
+              text: 'Aplikacje webowe w React i TypeScript, komponenty, integracje API oraz interfejsy projektowane z myślą o rzeczywistym użytkowaniu.',
             },
             {
               title: 'Backend / Data',
-              text: 'PostgreSQL, Supabase Storage, RLS i warstwa dostępu do danych oddzielona od interfejsu.',
+              text: 'PostgreSQL, Supabase, autoryzacja, przechowywanie danych i architektura oddzielająca logikę aplikacji od warstwy prezentacji.',
             },
             {
               title: 'Delivery',
-              text: 'Krótki feedback loop, czytelne commity i kod, który można przejąć bez odkopywania intencji.',
+              text: 'Krótki cykl wdrożeń, czytelny kod, przejrzyste commity i rozwiązania, które można łatwo rozwijać oraz przekazać innym programistom.',
             },
           ],
         },
@@ -237,19 +237,19 @@ export const resources = {
           cards: [
             {
               title: 'Unity / VR',
-              text: 'Gameplay mechanics, VR interactions, OpenXR, scene profiling and builds tested on target devices.',
+              text: 'Gameplay systems, XR interactions, OpenXR, performance optimization, and testing on target VR devices.',
             },
             {
               title: 'Software',
-              text: 'React and TypeScript, components, API integrations and screens prepared for real use, not just mockups.',
+              text: 'Web applications built with React and TypeScript, API integrations, and user interfaces designed for real-world use.',
             },
             {
               title: 'Backend / Data',
-              text: 'PostgreSQL, Supabase Storage, RLS and data access kept separate from the interface.',
+              text: 'PostgreSQL, Supabase, authentication, data storage, and architecture that keeps business logic separate from the presentation layer.',
             },
             {
               title: 'Delivery',
-              text: 'Short feedback loops, clear commits and code that can be picked up without digging for intent.',
+              text: 'Short delivery cycles, clean code, clear commit history, and solutions that are easy to maintain and hand over to other developers.',
             },
           ],
         },
