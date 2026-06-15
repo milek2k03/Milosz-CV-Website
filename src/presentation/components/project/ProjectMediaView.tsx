@@ -1,10 +1,25 @@
 import { Play } from 'lucide-react'
-import type { SyntheticEvent } from 'react'
+import { useState, type ReactNode, type SyntheticEvent } from 'react'
 import type { ProjectMedia } from '@/domain/portfolio/entities'
+
+type MediaOrientation = 'landscape' | 'portrait'
 
 interface VideoFrameThumbnailProps {
   media: ProjectMedia
   className?: string
+}
+
+interface OrientationAwareImageFrameProps {
+  alt: string
+  children?: ReactNode
+  className?: string
+  decoding?: 'async' | 'auto' | 'sync'
+  fetchPriority?: 'auto' | 'high' | 'low'
+  imageClassName?: string
+  landscapeClassName?: string
+  loading?: 'eager' | 'lazy'
+  portraitClassName?: string
+  src: string
 }
 
 interface ProjectMediaViewProps {
@@ -15,8 +30,51 @@ interface ProjectMediaViewProps {
   thumbnailOnly?: boolean
 }
 
+const getMediaOrientation = (
+  width: number,
+  height: number,
+): MediaOrientation => (height > width ? 'portrait' : 'landscape')
+
+export function OrientationAwareImageFrame({
+  alt,
+  children,
+  className = '',
+  decoding = 'async',
+  fetchPriority = 'auto',
+  imageClassName = 'object-contain',
+  landscapeClassName = 'aspect-video w-full',
+  loading = 'lazy',
+  portraitClassName = 'mx-auto aspect-[9/16] h-72 max-w-full sm:h-80',
+  src,
+}: OrientationAwareImageFrameProps) {
+  const [orientation, setOrientation] =
+    useState<MediaOrientation>('landscape')
+  const frameClassName =
+    orientation === 'portrait' ? portraitClassName : landscapeClassName
+
+  return (
+    <div className={`${frameClassName} ${className}`}>
+      <img
+        alt={alt}
+        className={`h-full w-full ${imageClassName}`}
+        decoding={decoding}
+        fetchPriority={fetchPriority}
+        loading={loading}
+        onLoad={(event) => {
+          const image = event.currentTarget
+          setOrientation(
+            getMediaOrientation(image.naturalWidth, image.naturalHeight),
+          )
+        }}
+        src={src}
+      />
+      {children}
+    </div>
+  )
+}
+
 export function VideoFrameThumbnail({
-  className = 'aspect-video w-full object-fill',
+  className = 'aspect-video w-full object-contain',
   media,
 }: VideoFrameThumbnailProps) {
   const handleLoadedMetadata = (event: SyntheticEvent<HTMLVideoElement>) => {
@@ -72,14 +130,15 @@ export function ProjectMediaView({
   if (media.type === 'video') {
     if (thumbnailOnly) {
       return (
-        <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--surface)]">
+        <div className="relative h-full w-full overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--surface)]">
           {media.posterUrl ? (
-            <img
+            <OrientationAwareImageFrame
               alt={media.alt}
-              className="aspect-video w-full object-fill"
-              decoding="async"
               fetchPriority={priority ? 'high' : 'auto'}
+              imageClassName="object-contain"
+              landscapeClassName="aspect-video h-full w-full"
               loading={priority ? 'eager' : 'lazy'}
+              portraitClassName="mx-auto aspect-[9/16] h-full max-w-full"
               src={media.posterUrl}
             />
           ) : (

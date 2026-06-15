@@ -21,6 +21,7 @@ import { localizeProject } from '@/domain/portfolio/localizeProject'
 import { Badge } from '@/presentation/components/Badge'
 import { ButtonLink } from '@/presentation/components/Button'
 import {
+  OrientationAwareImageFrame,
   ProjectMediaView,
   VideoFrameThumbnail,
 } from '@/presentation/components/project/ProjectMediaView'
@@ -483,7 +484,7 @@ function ProjectMediaGallery({
       </div>
 
       {hasMultipleMedia ? (
-        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+        <div className="mt-3 flex items-start gap-3 overflow-x-auto pb-1">
           {media.map((item, index) => {
             const isSelected = index === selectedIndex
             const thumbnailUrl =
@@ -492,7 +493,7 @@ function ProjectMediaGallery({
             return (
               <button
                 aria-label={`${isEnglish ? 'Open media' : 'Otwórz media'} ${index + 1}`}
-                className={`focus-ring relative aspect-video w-32 shrink-0 overflow-hidden rounded-md border bg-[color:var(--card)] transition-colors sm:w-40 ${
+                className={`focus-ring relative shrink-0 overflow-hidden rounded-md border bg-[color:var(--card)] transition-colors ${
                   isSelected
                     ? 'border-[color:var(--primary)]'
                     : 'border-[color:var(--border)] hover:border-cyan-300/45'
@@ -502,20 +503,21 @@ function ProjectMediaGallery({
                 type="button"
               >
                 {thumbnailUrl ? (
-                  <img
+                  <OrientationAwareImageFrame
                     alt={item.alt}
-                    className="size-full object-fill"
-                    decoding="async"
+                    imageClassName="object-contain"
+                    landscapeClassName="aspect-video w-32 sm:w-40"
                     loading="lazy"
+                    portraitClassName="aspect-[9/16] h-24 sm:h-28"
                     src={thumbnailUrl}
                   />
                 ) : item.type === 'video' ? (
                   <VideoFrameThumbnail
-                    className="size-full object-fill"
+                    className="aspect-video w-32 object-contain sm:w-40"
                     media={item}
                   />
                 ) : (
-                  <span className="grid size-full place-items-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)]">
+                  <span className="grid aspect-video w-32 place-items-center text-xs font-semibold uppercase tracking-normal text-[color:var(--muted)] sm:w-40">
                     Video
                   </span>
                 )}

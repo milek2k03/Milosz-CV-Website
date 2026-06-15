@@ -66,6 +66,7 @@ import type {
   SiteStackCardContent,
 } from '@/domain/portfolio/entities'
 import { Button } from '@/presentation/components/Button'
+import { OrientationAwareImageFrame } from '@/presentation/components/project/ProjectMediaView'
 import {
   useCvDocument,
   usePortfolioSettings,
@@ -2440,6 +2441,73 @@ function ContentEditorGroup({
   )
 }
 
+function ProjectMediaAdminPreview({
+  isCover,
+  media,
+}: {
+  isCover: boolean
+  media: ProjectMedia
+}) {
+  const coverBadge = isCover ? (
+    <span className="absolute left-2 top-2 rounded-md border border-cyan-300/40 bg-cyan-300/15 px-2 py-1 text-xs font-semibold text-cyan-100">
+      Miniaturka
+    </span>
+  ) : null
+  const videoBadge =
+    media.type === 'video' ? (
+      <span className="absolute right-2 top-2 rounded-md border border-white/20 bg-black/45 px-2 py-1 text-xs font-semibold uppercase text-white">
+        Video
+      </span>
+    ) : null
+
+  if (media.type === 'image') {
+    return (
+      <OrientationAwareImageFrame
+        alt={media.alt}
+        className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]"
+        imageClassName="object-contain"
+        landscapeClassName="aspect-video w-full"
+        loading="lazy"
+        portraitClassName="mx-auto aspect-[9/16] h-72 max-w-full"
+        src={media.url}
+      >
+        {coverBadge}
+      </OrientationAwareImageFrame>
+    )
+  }
+
+  if (media.posterUrl) {
+    return (
+      <OrientationAwareImageFrame
+        alt={media.alt}
+        className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]"
+        imageClassName="object-contain"
+        landscapeClassName="aspect-video w-full"
+        loading="lazy"
+        portraitClassName="mx-auto aspect-[9/16] h-72 max-w-full"
+        src={media.posterUrl}
+      >
+        {coverBadge}
+        {videoBadge}
+      </OrientationAwareImageFrame>
+    )
+  }
+
+  return (
+    <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
+      <video
+        className="aspect-video w-full object-contain"
+        controls
+        muted
+        preload="metadata"
+        src={media.url}
+      />
+      {coverBadge}
+      {videoBadge}
+    </div>
+  )
+}
+
 function ProjectEditor({
   onSaved,
   project,
@@ -3116,31 +3184,10 @@ function ProjectEditor({
                 value={media.id}
                 whileDrag={{ scale: 1.01, zIndex: 30 }}
               >
-                <div className="relative overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--card)]">
-                  {media.type === 'image' ? (
-                    <img
-                      alt={media.alt}
-                      className="aspect-video w-full object-cover"
-                      decoding="async"
-                      loading="lazy"
-                      src={media.url}
-                    />
-                  ) : (
-                    <video
-                      className="aspect-video w-full object-cover"
-                      controls
-                      muted
-                      poster={media.posterUrl}
-                      preload="metadata"
-                      src={media.url}
-                    />
-                  )}
-                  {index === 0 ? (
-                    <span className="absolute left-2 top-2 rounded-md border border-cyan-300/40 bg-cyan-300/15 px-2 py-1 text-xs font-semibold text-cyan-100">
-                      Miniaturka
-                    </span>
-                  ) : null}
-                </div>
+                <ProjectMediaAdminPreview
+                  isCover={index === 0}
+                  media={media}
+                />
                 <div className="mt-3 flex items-start gap-3">
                   <span
                     aria-hidden="true"
