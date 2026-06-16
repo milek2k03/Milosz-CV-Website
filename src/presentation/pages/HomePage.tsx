@@ -318,6 +318,14 @@ export function HomePage() {
                 {t('common.linkedin')}
               </a>
             </div>
+            <div className="mt-8 max-w-2xl border-t border-[color:var(--border)] pt-5">
+              <p className="text-sm font-medium text-[color:var(--text)]">
+                {t('contactForm.cookiesLabel')}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[color:var(--muted)]">
+                {t('contactForm.cookiesText')}
+              </p>
+            </div>
           </div>
 
           <ContactForm />
