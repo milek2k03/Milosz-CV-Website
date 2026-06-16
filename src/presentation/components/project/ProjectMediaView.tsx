@@ -205,17 +205,19 @@ export function ProjectMediaView({
     )
   }
 
-  const imageWidths = thumbnailOnly ? [320, 520, 760] : [640, 960, 1280, 1600]
-  const imageResize = thumbnailOnly ? 'cover' : 'contain'
-  const optimizedSrc = getOptimizedImageUrl(media.url, {
-    quality: thumbnailOnly ? 70 : 76,
-    resize: imageResize,
-    width: thumbnailOnly ? 760 : 1280,
-  })
-  const srcSet = getResponsiveImageSrcSet(media.url, imageWidths, {
-    quality: thumbnailOnly ? 70 : 76,
-    resize: imageResize,
-  })
+  const optimizedSrc = thumbnailOnly
+    ? media.url
+    : getOptimizedImageUrl(media.url, {
+        quality: 76,
+        resize: 'contain',
+        width: 1280,
+      })
+  const srcSet = thumbnailOnly
+    ? undefined
+    : getResponsiveImageSrcSet(media.url, [640, 960, 1280, 1600], {
+        quality: 76,
+        resize: 'contain',
+      })
 
   return (
     <img
