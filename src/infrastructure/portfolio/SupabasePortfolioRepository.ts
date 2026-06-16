@@ -35,6 +35,7 @@ type ProjectRow = Database['public']['Tables']['projects']['Row']
 type MediaRow = Database['public']['Tables']['project_media']['Row']
 type TranslationRow =
   Database['public']['Tables']['project_translations']['Row']
+type MediaFetchMode = 'cover-only' | 'all'
 type DeepPartial<T> = {
   [Key in keyof T]?: T[Key] extends unknown[]
     ? T[Key]
@@ -221,7 +222,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
       throw new Error(error.message)
     }
 
-    return this.withMedia(data ?? [])
+    return this.withMedia(data ?? [], 'cover-only')
   }
 
   async listAdminProjects(): Promise<Project[]> {
@@ -235,7 +236,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
       throw new Error(error.message)
     }
 
-    return this.withMedia(data ?? [])
+    return this.withMedia(data ?? [], 'all')
   }
 
   async getProjectBySlug(slug: string): Promise<Project | null> {
@@ -605,9 +606,15 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     return mergeSiteContent(data.content, data.updated_at)
   }
 
-  private async withMedia(projectRows: ProjectRow[]): Promise<Project[]> {
+  private async withMedia(
+    projectRows: ProjectRow[],
+    mediaFetchMode: MediaFetchMode,
+  ): Promise<Project[]> {
     const projectIds = projectRows.map((project) => project.id)
-    const media = await this.getMediaForProjects(projectIds)
+    const media =
+      mediaFetchMode === 'cover-only'
+        ? await this.getCoverMediaForProjects(projectIds)
+        : await this.getMediaForProjects(projectIds)
     const translations = await this.getTranslationsForProjects(projectIds)
 
     return projectRows.map((project) =>
@@ -635,6 +642,35 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }
 
     return data ?? []
+  }
+
+  private async getCoverMediaForProjects(
+    projectIds: string[],
+  ): Promise<MediaRow[]> {
+    if (projectIds.length === 0) {
+      return []
+    }
+
+    const { data, error } = await this.client
+      .from('project_media')
+      .select('*')
+      .in('project_id', projectIds)
+      .order('project_id', { ascending: true })
+      .order('sort_order', { ascending: true })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const coverByProject = new Map<string, MediaRow>()
+
+    for (const media of data ?? []) {
+      if (!coverByProject.has(media.project_id)) {
+        coverByProject.set(media.project_id, media)
+      }
+    }
+
+    return Array.from(coverByProject.values())
   }
 
   private async getNextProjectMediaSortOrder(projectId: string): Promise<number> {

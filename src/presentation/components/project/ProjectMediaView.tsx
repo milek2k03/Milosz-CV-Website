@@ -1,6 +1,10 @@
 import { Play } from 'lucide-react'
 import { useState, type ReactNode, type SyntheticEvent } from 'react'
 import type { ProjectMedia } from '@/domain/portfolio/entities'
+import {
+  getOptimizedImageUrl,
+  getResponsiveImageSrcSet,
+} from '@/shared/media/imageOptimization'
 
 type MediaOrientation = 'landscape' | 'portrait'
 
@@ -19,6 +23,7 @@ interface OrientationAwareImageFrameProps {
   landscapeClassName?: string
   loading?: 'eager' | 'lazy'
   portraitClassName?: string
+  sizes?: string
   src: string
 }
 
@@ -45,12 +50,22 @@ export function OrientationAwareImageFrame({
   landscapeClassName = 'aspect-video w-full',
   loading = 'lazy',
   portraitClassName = 'mx-auto aspect-[9/16] h-72 max-w-full sm:h-80',
+  sizes = '(min-width: 768px) 720px, 100vw',
   src,
 }: OrientationAwareImageFrameProps) {
   const [orientation, setOrientation] =
     useState<MediaOrientation>('landscape')
   const frameClassName =
     orientation === 'portrait' ? portraitClassName : landscapeClassName
+  const optimizedSrc = getOptimizedImageUrl(src, {
+    quality: 74,
+    resize: imageClassName.includes('contain') ? 'contain' : 'cover',
+    width: 960,
+  })
+  const srcSet = getResponsiveImageSrcSet(src, [360, 640, 960, 1280], {
+    quality: 74,
+    resize: imageClassName.includes('contain') ? 'contain' : 'cover',
+  })
 
   return (
     <div className={`${frameClassName} ${className}`}>
@@ -60,13 +75,21 @@ export function OrientationAwareImageFrame({
         decoding={decoding}
         fetchPriority={fetchPriority}
         loading={loading}
+        onError={(event) => {
+          const image = event.currentTarget
+          image.onerror = null
+          image.srcset = ''
+          image.src = src
+        }}
         onLoad={(event) => {
           const image = event.currentTarget
           setOrientation(
             getMediaOrientation(image.naturalWidth, image.naturalHeight),
           )
         }}
-        src={src}
+        sizes={sizes}
+        src={optimizedSrc}
+        srcSet={srcSet}
       />
       {children}
     </div>
@@ -182,6 +205,18 @@ export function ProjectMediaView({
     )
   }
 
+  const imageWidths = thumbnailOnly ? [320, 520, 760] : [640, 960, 1280, 1600]
+  const imageResize = thumbnailOnly ? 'cover' : 'contain'
+  const optimizedSrc = getOptimizedImageUrl(media.url, {
+    quality: thumbnailOnly ? 70 : 76,
+    resize: imageResize,
+    width: thumbnailOnly ? 760 : 1280,
+  })
+  const srcSet = getResponsiveImageSrcSet(media.url, imageWidths, {
+    quality: thumbnailOnly ? 70 : 76,
+    resize: imageResize,
+  })
+
   return (
     <img
       alt={media.alt}
@@ -190,7 +225,19 @@ export function ProjectMediaView({
       fetchPriority={priority ? 'high' : 'auto'}
       height="1080"
       loading={priority ? 'eager' : 'lazy'}
-      src={media.url}
+      onError={(event) => {
+        const image = event.currentTarget
+        image.onerror = null
+        image.srcset = ''
+        image.src = media.url
+      }}
+      sizes={
+        thumbnailOnly
+          ? '(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw'
+          : '(min-width: 1024px) 760px, 100vw'
+      }
+      src={optimizedSrc}
+      srcSet={srcSet}
       width="1920"
     />
   )

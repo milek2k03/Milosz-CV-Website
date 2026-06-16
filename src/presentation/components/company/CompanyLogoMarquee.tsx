@@ -4,6 +4,10 @@ import { defaultSiteContent, getLocalizedSiteContent } from '@/content/defaultSi
 import type { CompanyLogo } from '@/domain/portfolio/entities'
 import { SectionHeader } from '@/presentation/components/SectionHeader'
 import { Container } from '@/presentation/layout/Container'
+import {
+  getOptimizedImageUrl,
+  getResponsiveImageSrcSet,
+} from '@/shared/media/imageOptimization'
 
 function LogoGroup({ logos }: { logos: CompanyLogo[] }) {
   return (
@@ -23,7 +27,24 @@ function LogoGroup({ logos }: { logos: CompanyLogo[] }) {
               fetchPriority="low"
               height="99"
               loading="lazy"
-              src={company.imageUrl}
+              onError={(event) => {
+                const image = event.currentTarget
+                image.onerror = null
+                image.srcset = ''
+                image.src = company.imageUrl ?? ''
+              }}
+              sizes="176px"
+              src={getOptimizedImageUrl(company.imageUrl, {
+                height: 99,
+                quality: 72,
+                resize: 'contain',
+                width: 176,
+              })}
+              srcSet={getResponsiveImageSrcSet(company.imageUrl, [176, 352], {
+                height: 198,
+                quality: 72,
+                resize: 'contain',
+              })}
               width="176"
             />
           ) : (
@@ -47,7 +68,10 @@ export function CompanyLogoMarquee() {
       : defaultSiteContent.companyLogos
 
   return (
-    <section id="firmy" className="border-b border-[color:var(--border)]">
+    <section
+      id="firmy"
+      className="render-later border-b border-[color:var(--border)]"
+    >
       <Container className="py-12 sm:py-16">
         <SectionHeader
           eyebrow={content.companies.eyebrow}

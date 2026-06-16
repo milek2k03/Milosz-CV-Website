@@ -1,11 +1,31 @@
 import { lazy, Suspense } from 'react'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AppProviders } from '@/app/providers/AppProviders'
-import { PageViewTracker } from '@/presentation/analytics/PageViewTracker'
 import { ScrollToTop } from '@/presentation/layout/ScrollToTop'
-import { HomePage } from '@/presentation/pages/HomePage'
-import { NotFoundPage } from '@/presentation/pages/NotFoundPage'
-import { PortfolioAreaPage } from '@/presentation/pages/PortfolioAreaPage'
+
+const PageViewTracker = lazy(() =>
+  import('@/presentation/analytics/PageViewTracker').then((module) => ({
+    default: module.PageViewTracker,
+  })),
+)
+
+const HomePage = lazy(() =>
+  import('@/presentation/pages/HomePage').then((module) => ({
+    default: module.HomePage,
+  })),
+)
+
+const PortfolioAreaPage = lazy(() =>
+  import('@/presentation/pages/PortfolioAreaPage').then((module) => ({
+    default: module.PortfolioAreaPage,
+  })),
+)
+
+const NotFoundPage = lazy(() =>
+  import('@/presentation/pages/NotFoundPage').then((module) => ({
+    default: module.NotFoundPage,
+  })),
+)
 
 const AdminPage = lazy(() =>
   import('@/presentation/pages/AdminPage').then((module) => ({
@@ -32,7 +52,9 @@ function App() {
     <AppProviders>
       <Router>
         <ScrollToTop />
-        <PageViewTracker />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />

@@ -165,7 +165,10 @@ export function HomePage() {
         </Container>
       </section>
 
-      <section id="projekty" className="border-b border-[color:var(--border)]">
+      <section
+        id="projekty"
+        className="render-later border-b border-[color:var(--border)]"
+      >
         <Container className="py-12 sm:py-16">
           <SectionHeader
             eyebrow={content.projects.eyebrow}
@@ -184,8 +187,12 @@ export function HomePage() {
                       {content.projects.unityHeading}
                     </h3>
                     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {unityProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
+                      {unityProjects.map((project, index) => (
+                        <ProjectCard
+                          key={project.id}
+                          priority={index === 0}
+                          project={project}
+                        />
                       ))}
                     </div>
                     {hasMoreUnityProjects ? (
@@ -220,8 +227,12 @@ export function HomePage() {
                       {content.projects.webHeading}
                     </h3>
                     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {webProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
+                      {webProjects.map((project, index) => (
+                        <ProjectCard
+                          key={project.id}
+                          priority={index === 0 && unityProjects.length === 0}
+                          project={project}
+                        />
                       ))}
                     </div>
                     {hasMoreWebProjects ? (
@@ -257,7 +268,10 @@ export function HomePage() {
 
       <CompanyLogoMarquee />
 
-      <section id="stack" className="border-b border-[color:var(--border)]">
+      <section
+        id="stack"
+        className="render-later border-b border-[color:var(--border)]"
+      >
         <Container className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr]">
           <SectionHeader
             eyebrow={content.stack.eyebrow}
@@ -283,7 +297,7 @@ export function HomePage() {
         </Container>
       </section>
 
-      <section id="kontakt">
+      <section id="kontakt" className="render-later">
         <Container className="grid gap-8 py-12 sm:py-16 lg:grid-cols-[1fr_420px]">
           <div>
             <SectionHeader

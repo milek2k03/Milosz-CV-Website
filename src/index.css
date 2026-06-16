@@ -102,6 +102,11 @@ video {
   text-wrap: balance;
 }
 
+.render-later {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
 .form-field {
   width: 100%;
   border: 1px solid var(--border);

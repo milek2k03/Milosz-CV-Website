@@ -24,6 +24,10 @@ import {
   ProjectMediaView,
   VideoFrameThumbnail,
 } from '@/presentation/components/project/ProjectMediaView'
+import {
+  getOptimizedImageUrl,
+  getResponsiveImageSrcSet,
+} from '@/shared/media/imageOptimization'
 
 interface ProjectCaseStudyProps {
   project: Project
@@ -368,6 +372,21 @@ function WebProjectPreview({
   }
 
   const hostname = getHostname(link.url)
+  const previewSrc = getOptimizedImageUrl(webPreviewImage.url, {
+    height: 720,
+    quality: 76,
+    resize: 'cover',
+    width: 1280,
+  })
+  const previewSrcSet = getResponsiveImageSrcSet(
+    webPreviewImage.url,
+    [640, 960, 1280, 1600],
+    {
+      height: 900,
+      quality: 76,
+      resize: 'cover',
+    },
+  )
 
   return (
     <a
@@ -383,7 +402,15 @@ function WebProjectPreview({
           className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
           decoding="async"
           loading="eager"
-          src={webPreviewImage.url}
+          onError={(event) => {
+            const image = event.currentTarget
+            image.onerror = null
+            image.srcset = ''
+            image.src = webPreviewImage.url
+          }}
+          sizes="(min-width: 1024px) 740px, 100vw"
+          src={previewSrc}
+          srcSet={previewSrcSet}
         />
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-gradient-to-t from-black/75 to-transparent p-4 pt-16">
           <p className="min-w-0 truncate text-xs font-semibold uppercase text-white">
@@ -507,7 +534,26 @@ function ProjectMediaGallery({
                     className="size-full object-contain"
                     decoding="async"
                     loading="lazy"
-                    src={thumbnailUrl}
+                    onError={(event) => {
+                      const image = event.currentTarget
+                      image.onerror = null
+                      image.srcset = ''
+                      image.src = thumbnailUrl
+                    }}
+                    sizes="160px"
+                    src={getOptimizedImageUrl(thumbnailUrl, {
+                      quality: 68,
+                      resize: 'contain',
+                      width: 240,
+                    })}
+                    srcSet={getResponsiveImageSrcSet(
+                      thumbnailUrl,
+                      [120, 180, 240, 320],
+                      {
+                        quality: 68,
+                        resize: 'contain',
+                      },
+                    )}
                   />
                 ) : item.type === 'video' ? (
                   <VideoFrameThumbnail
