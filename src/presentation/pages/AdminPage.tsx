@@ -1055,7 +1055,8 @@ function AnalyticsPanel() {
             <h2 className="mt-2 text-2xl font-semibold">Ruch na stronie</h2>
             <p className="mt-3 max-w-3xl leading-7 text-slate-300">
               Liczba wejsc i wyswietlen w podziale na dzien, tydzien, miesiac
-              i rok. Panel nie zlicza odwiedzin na sciezce /admin.
+              i rok. Panel nie zlicza sciezki /admin oraz filtruje typowe boty,
+              crawlery i podglady linkow.
             </p>
           </div>
           <Button
