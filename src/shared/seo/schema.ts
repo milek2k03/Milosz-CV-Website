@@ -7,17 +7,13 @@ export const createPersonSchema = (
 ) => ({
   '@context': 'https://schema.org',
   '@type': 'Person',
-  '@id': new URL('/#person', siteProfile.siteUrl).toString(),
   name: siteProfile.fullName,
   jobTitle: siteProfile.roles,
   description,
   email: `mailto:${siteProfile.email}`,
   url: siteProfile.siteUrl,
-  image: new URL('/milosz-small-logo.png', siteProfile.siteUrl).toString(),
   knowsAbout: siteProfile.stack,
-  sameAs: siteProfile.links
-    .map((link) => link.href)
-    .filter((href) => !href.endsWith('github.com/') && !href.endsWith('/in/your-profile')),
+  sameAs: siteProfile.links.map((link) => link.href),
   hasPart: projects.map((project) => ({
     '@type': 'Project',
     name: project.title,

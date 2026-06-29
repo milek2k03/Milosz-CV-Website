@@ -1,40 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://miloszczechportfolio.pl/</loc>
-    <lastmod>2026-06-29</lastmod>
+    <loc>https://milosz.dev/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="pl" href="https://miloszczechportfolio.pl/" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://miloszczechportfolio.pl/?lng=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miloszczechportfolio.pl/" />
   </url>
   <url>
-    <loc>https://miloszczechportfolio.pl/projects/vr-training-simulator</loc>
-    <lastmod>2026-06-29</lastmod>
+    <loc>https://milosz.dev/projects/vr-training-simulator</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="pl" href="https://miloszczechportfolio.pl/projects/vr-training-simulator" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://miloszczechportfolio.pl/projects/vr-training-simulator?lng=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miloszczechportfolio.pl/projects/vr-training-simulator" />
   </url>
   <url>
-    <loc>https://miloszczechportfolio.pl/projects/gameplay-systems-prototype</loc>
-    <lastmod>2026-06-29</lastmod>
+    <loc>https://milosz.dev/projects/gameplay-systems-prototype</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="pl" href="https://miloszczechportfolio.pl/projects/gameplay-systems-prototype" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://miloszczechportfolio.pl/projects/gameplay-systems-prototype?lng=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miloszczechportfolio.pl/projects/gameplay-systems-prototype" />
   </url>
   <url>
-    <loc>https://miloszczechportfolio.pl/projects/portfolio-admin-platform</loc>
-    <lastmod>2026-06-29</lastmod>
+    <loc>https://milosz.dev/projects/portfolio-admin-platform</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="pl" href="https://miloszczechportfolio.pl/projects/portfolio-admin-platform" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://miloszczechportfolio.pl/projects/portfolio-admin-platform?lng=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miloszczechportfolio.pl/projects/portfolio-admin-platform" />
   </url>
 </urlset>

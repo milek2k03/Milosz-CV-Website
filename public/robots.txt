@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://miloszczechportfolio.pl/sitemap.xml
+Sitemap: https://milosz.dev/sitemap.xml
