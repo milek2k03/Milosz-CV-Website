@@ -8,7 +8,7 @@ const readEnv = (key: string) => {
 }
 
 export const appEnv = {
-  siteUrl: readEnv('VITE_SITE_URL') ?? 'https://milosz.dev',
+  siteUrl: readEnv('VITE_SITE_URL') ?? 'https://miloszczechportfolio.pl',
   contactEmail: readEnv('VITE_CONTACT_EMAIL'),
   githubUrl: readEnv('VITE_GITHUB_URL'),
   linkedinUrl: readEnv('VITE_LINKEDIN_URL'),
